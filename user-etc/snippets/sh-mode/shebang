@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: shebang
+# key: !
+# --
+#!${1:`(cond ((when-let* ((             shell-file-name)
+                          (basename     (file-name-base shell-file-name))
+                          (path-in-path (executable-find basename))
+                          (             (file-equal-p shell-file-name path-in-path)))
+                (concat "/usr/bin/env " basename)))
+             (shell-file-name)
+             ("/bin/sh "))`}
+$0

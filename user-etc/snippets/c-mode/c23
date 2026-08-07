@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: __STDC_VERSION__ constant for C23
+# key: c23
+# --
+202311L$0

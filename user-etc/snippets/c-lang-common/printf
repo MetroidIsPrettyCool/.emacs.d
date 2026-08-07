@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: fprintf(3)
+# key: printf
+# --
+fprintf(${1:stdout}, "${2:%d}\n"${3:$(when (length> yas-text 0) ", ")}${3:foo});$0

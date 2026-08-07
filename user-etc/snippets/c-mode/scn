@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: <inttypes.h> SCN macro
+# key: scn
+# --
+SCN${1:$$(yas-choose-value
+  '("d" "i" "b" "o" "u" "x")
+)}${2:$$(when-let*
+  ((value (yas-choose-value
+            '("least" "fast" "max" "ptr"))))
+  (upcase value)
+)}${3:8}$0

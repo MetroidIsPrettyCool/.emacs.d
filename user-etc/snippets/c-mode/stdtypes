@@ -1,0 +1,50 @@
+# -*- mode: snippet -*-
+# name: #include<float.h>, #include<inttypes.h>, #include<stdbool.h>, etc.
+# key: stdtypes
+# --
+
+/* Integer types */
+
+/* Since C99. Superset of <stdint.h>, exact-width integer types &
+ * PRI/SCN macros. */
+#include <inttypes.h>
+/* Since C89. Macro constants describing properties of integer types. */
+#include <limits.h>
+/* Since C23. Additional bitwise operations. */
+#include <stdbit.h>
+/* Since C23. Checked arithmetic functions. */
+#include <stdckdint.h>
+/* Since C89. ptrdiff_t, size_t, max_align_t, wchar_t, nullptr_t, NULL,
+ * unreachable(), and offsetof(). */
+#include <stddef.h>
+
+/* Character types */
+/* Since C89. Functions for classifying characters. */
+#include <ctype.h>
+/* Since C11. Sized character types and unicode utilities. */
+#include <uchar.h>
+/* Since C95. Wide character types. */
+#include <wchar.h>
+/* Since C95. More wide character types. Functions for classifying wide
+ * characters. */
+#include <wctype.h>
+
+/* Floating types */
+/* Since C99. Functions and types for working with the floating point
+ * environment. */
+#include <fenv.h>
+/* Since C89. Macro constants describing properties of floating-point
+ * types. */
+#include <float.h>
+
+/* Complex types. */
+/* Since C99. Complex numbers. */
+#include <complex.h>
+
+/* Boolean types. */
+/* Since C99. Obsolecent since C23. Boolean types. */
+/* #include <stdbool.h> */
+
+/* Atomic types. */
+/* Since C11. Atomic types. */
+#include <stdatomic.h>$0

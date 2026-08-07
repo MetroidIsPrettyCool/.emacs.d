@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: set -euxo pipefail
+# key: set
+# --
+set -euxo pipefail

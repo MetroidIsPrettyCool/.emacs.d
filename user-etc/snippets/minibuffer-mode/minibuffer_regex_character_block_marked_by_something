@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: minibuffer regex character block marked by *something*
+# key: reblk
+# --
+$1\\([${1:$(if (string-match-p "^\\\\[^" yas-text) "" "^")}${1:$(string-trim yas-text "\\\\[" "\\\\]"):}]+\\)$1$0

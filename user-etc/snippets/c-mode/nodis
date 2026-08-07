@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [[nodiscard]]
+# key: nodis
+# --
+[[nodiscard${1:\(\"$2\"\)}]]$0

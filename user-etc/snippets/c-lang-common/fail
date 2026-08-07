@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: exit(EXIT_FAILURE);
+# key: fail
+# --
+exit(EXIT_FAILURE);$0

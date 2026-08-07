@@ -1,0 +1,16 @@
+# -*- mode: snippet -*-
+# name: main
+# key: main
+# --
+#include <stdio.h>
+#include <stdlib.h>
+
+#if __STDC_NO_VLA__
+    #define argc()
+#else
+    #define argc() argc
+#endif
+
+int main(int argc, char* argv[static argc() + 1]) {
+    $0
+}

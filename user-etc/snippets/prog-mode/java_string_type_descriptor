@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: java string type descriptor
+# key: jls
+# group: java descriptors
+# --
+Ljava/lang/String;

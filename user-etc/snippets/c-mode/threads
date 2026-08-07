@@ -1,0 +1,45 @@
+# -*- mode: snippet -*-
+# name: include all standard thread/external process/misc funny non-procedural headers
+# key: threads
+# --
+/* TEMPLATE:
+ * Include all the standard "not quite procedural" headers: */
+#if __STDC__
+    #include <stdarg.h>                         /* Variable arguments */
+#endif
+#if __STDC__ && (__STDC_VERSION__ < 199901L || __STDC_HOSTED__)
+    #include <setjmp.h>                            /* Non-local jumps */
+    #include <signal.h>                            /* Signal handling */
+    #include <stdlib.h>                          /* General utilities */
+#endif
+#if __STDC_VERSION__ >= 201112L && !__STDC_NO_ATOMICS__ \\
+    && __STDC_HOSTED__
+    #include <stdatomic.h>                                 /* Atomics */
+#endif
+#if __STDC_VERSION__ >= 201112L && !__STDC_NO_THREADS__ \\
+    && __STDC_HOSTED__
+    #include <threads.h>                                   /* Threads */
+#endif
+#if __STDC_VERSION__ >= 201112L && __STDC_VERSION__ < 202311L
+    #include <stdnoreturn.h>                             /* _Noreturn */
+#endif
+#if __STDC_VERSION__ >= 202311L
+    #include <stddef.h>                         /* Common definitions */
+#endif
+/* Note that <stddef.h> _has_ been around since C89, but for this
+ * template we only care that in C23 and later it provides
+ * unreachable().
+ *
+ * The following predefined macros may be of note:
+ *
+ * Since C11 (__STDC_VERSION__ == 201112L):
+ *
+ * - __STDC_NO_ATOMICS__
+ *
+ *   Conditionally defined to be exactly 1 if atomic types and
+ *   <stdatomic.h> are unavailable.
+ *
+ * - __STDC_NO_THREADS__
+ *
+ *   Conditionally defined to be exactly 1 if <threads.h> is
+ *   unavailable. */$0

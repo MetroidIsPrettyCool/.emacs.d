@@ -1,0 +1,64 @@
+# -*- mode: snippet -*-
+# name: include all standard \"characteristics of numeric types\" headers
+# key: limits
+# --
+/* TEMPLATE:
+ * Include all standard "characteristics of numeric types" headers: */
+#if __STDC__
+    #include <float.h>           /* Characteristics of floating types */
+    #include <stddef.h>                         /* Common definitions */
+#endif
+#if __STDC_VERSION__ >= 199901L
+    #include <limits.h>           /* Characteristics of integer types */
+    #include <stdint.h>                              /* Integer types */
+#endif
+#if __STDC_VERSION__ >= 201112L && __STDC_VERSION__ < 202311L
+    #include <stdalign.h>                                /* Alignment */
+#endif
+#if __STDC_VERSION__ >= 202311L
+    #include <stdbit.h>                     /* Bit and byte utilities */
+#endif
+/* The following predefined macros may be of note:
+ *
+ * Since C99 (__STDC_VERSION__ == 199901L):
+ *
+ * - __STDC_IEC_559__
+ *
+ *   Conditionally defined to be exactly 1 if floating point arithmetic
+ *   conforms to the floating point standard (IEEE 754; AKA IEC 559 or
+ *   ISO/IEC 60559). (This macro is obsolescent in C23 and later, see
+ *   __STDC_IEC_60559_BFP__.)
+ *
+ * - __STDC_IEC_559_COMPLEX__
+ *   Conditionally defined to be exactly 1 if complex arithmetic
+ *   conforms to the floating point standard. (This macro is obsolescent
+ *   in C23 and later, see __STDC_IEC_60559_COMPLEX__.)
+ *
+ * Since C23 (__STDC_VERSION__ == 202311L):
+ *
+ * - __STDC_IEC_60559_BFP__
+ *
+ *   Conditionally defined to be equal to __STDC_VERSION__ if binary
+ *   floating-point arithmetic conforms to the floating-point standard
+ *   harmonized with that C standard version. In C23, this is ISO/IEC
+ *   60559:2020.
+ *
+ * - __STDC_IEC_60559_DFP__
+ *
+ *   Conditionally defined to be equal to __STDC_VERSION__ if decimal
+ *   floating-point arithmetic conforms to the floating-point standard
+ *   harmonized with that C standard version. In C23, this is ISO/IEC
+ *   60559:2020.
+ *
+ * - __STDC_IEC_60559_COMPLEX__
+ *
+ *   Conditionally defined to be equal to __STDC_VERSION__ if complex
+ *   arithmetic conforms to the floating-point standard harmonized with
+ *   that C standard version. In C23, this is ISO/IEC 60559:2020.
+ *
+ * - __STDC_IEC_60559_TYPES__
+ *
+ *   Conditionally defined to be equal to __STDC_VERSION__ if the
+ *   implementation provides floating-point interchange types as
+ *   described by the floating-point standard harmonized with that C
+ *   standard version. In C23, this is ISO/IEC 60559:2020. */$0

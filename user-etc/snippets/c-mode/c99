@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: __STDC_VERSION__ constant for C99
+# key: c99
+# --
+199901L$0

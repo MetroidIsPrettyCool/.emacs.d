@@ -1,0 +1,39 @@
+# -*- mode: snippet -*-
+# name: -std=c...
+# key: ccstd
+# expand-env: ((done-with-dialect-selection))
+# --
+${1:-std=`(when (minibufferp) "c23")` $(if-let* (((not (minibufferp)))
+         (std
+          (yas-choose-value
+           '("c2y" "c23" "gnu23" "c17" "gnu17" "c11" "gnu11" "c99" "gnu99" "iso9899:199409" "c89" "gnu90"))))
+    (concat "-std=" std " ")
+    yas-text)}${2:$$(cond
+      ((minibufferp)                                          yas-text)
+      (done-with-dialect-selection                            yas-text)
+      (yas-moving-away-p (setq done-with-dialect-selection t) yas-text)
+      ((or (length> yas-text 0) (string-suffix-p yas-text " "))
+       (let ((dialect (cl-some (lambda (fn)
+                                 (funcall fn "Choose: "
+                                          '("-D_DEFAULT_SOURCE"
+                                            "-D_GNU_SOURCE"
+                                            "-D_POSIX_C_SOURCE=1"
+                                            "-D_POSIX_C_SOURCE=2"
+                                            "-D_POSIX_C_SOURCE=200809L"
+                                            "-D_POSIX_C_SOURCE=202405L"
+                                            "-D_XOPEN_SOURCE=500"
+                                            "-D_XOPEN_SOURCE=600"
+                                            "-D_XOPEN_SOURCE=700"
+                                            "-D_XOPEN_SOURCE=800"
+                                            "-fdefer-ts"
+                                            "-D__STDC_ALLOC_LIB__=201004L"
+                                            "-fhosted"
+                                            "-ffreestanding"
+                                            "-fplan9-extensions"
+                                            "-fpermissive"
+                                            "-D__STDC_NO_VLA__=1 -Werror=vla")))
+                               yas-prompt-functions)))
+         (if (length> dialect 0) (concat yas-text dialect)
+           (setq done-with-dialect-selection t)
+           yas-text)))
+      ((setq done-with-dialect-selection t) yas-text))}${2:$(when (length> yas-text 0) " ")}$0

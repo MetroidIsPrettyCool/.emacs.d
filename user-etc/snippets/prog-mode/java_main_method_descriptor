@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: java main method descriptor
+# key: mmd
+# group: java descriptors
+# --
+${1:main:}([Ljava/lang/String;)V$0

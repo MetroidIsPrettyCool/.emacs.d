@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: read file while
+# key: readwhile
+# --
+while IFS="" read -r ${1:line} || `(when (eq sh-shell 'bash) "[")`[ -n `(unless (eq sh-shell 'bash) "\"")`$$1`(unless (eq sh-shell 'bash) "\"")` ]`(when (eq sh-shell 'bash) "]")`; do
+    $0
+done < ${2:filename}

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: java constructor descriptor
+# key: cmd
+# group: java descriptors
+# --
+${1:<init>:}($0)V

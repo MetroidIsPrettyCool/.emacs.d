@@ -1,0 +1,8 @@
+alias cfg ./configure
+alias rm rm-warning.sh
+alias ct clear t
+alias oo find-file-other-window $@*
+alias ls ls --color=auto $@*
+alias la ls --color=auto -A $@*
+alias lal ls --color=auto -Al $@*
+alias javap-all /usr/bin/javap -l -private -s -sysinfo -constants -c -verbose $@*

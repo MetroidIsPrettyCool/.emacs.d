@@ -1,0 +1,40 @@
+# -*- mode: snippet -*-
+# name: __STDC_*__ macros
+# key: stdc
+# --
+__STDC${1:$(when (length> yas-text 0) "_"
+)}${1:$$(when-let*
+  ((value
+    (yas-choose-value
+      '(;; N3220 (C23 IS, equal-in-all-but-name draft) predefined
+        "embed_not_found" "embed_found" "embed_empty" "hosted" "utf_16" "utf_32" "version" "iso_10646" "mb_might_neq_wc"
+        "analyzable" "iec_60559_bfp" "iec_559" "iec_60559_dfp" "iec_60559_complex" "iec_60559_types" "iec_559_complex"
+        "lib_ext1" "no_atomics" "no_complex" "no_threads" "no_vla"
+        ;; + N3220 header versions
+        "version_assert_h" "version_complex_h" "version_fenv_h" "version_float_h" "version_inttypes_h"
+        "version_limits_h" "version_math_h" "version_setjmp_h" "version_stdarg_h" "version_stdatomic_h"
+        "version_stdbit_h" "version_stdckdint_h" "version_stddef_h" "version_stdint_h" "version_stdio_h"
+        "version_stdlib_h" "version_string_h" "version_tgmath_h" "version_time_h" "version_uchar_h" "version_wchar_h"
+        ;; + N3220 non-version, defined in headers
+        "endian_native" "endian_little" "endian_big"
+        ;; + N3220 you have to define 'em
+        "want_iec_60559_ext" "want_iec_60559_types_ext" "want_lib_ext1"
+        ;; + N3886 (C2y IS, latest draft) predefined
+        "literal_utf8" "literal_utf16" "literal_utf32" "wide_literal_utf8" "wide_literal_utf16" "wide_literal_utf32"
+        ;; + N3886 header versions
+        "version_stdcountof_h" "version_stdmchar_h"
+        ;; + N1712 (binary floating-pointer TS, lastest draft)
+        "want_iec_18661_ext1"
+        ;; + N1912 (decimal floating-point TS, latest draft)
+        "want_iec_60559_dfp_ext"
+        ;; + N3163 (floating-point supplementary functions TS, latest draft)
+        "iec_60559_funcs_reduction" "iec_60559_funcs_augmented_arithmetic" "want_iec_60559_funcs_ext"
+        ;; + N3164 (floating-point supplementary attributes TS, latest draft)
+        "iec_60559_attrib_evaluation_format" "iec_60559_attrib_optimization" "iec_60559_attrib_reproducible"
+        "iec_60559_attrib_alternate_exception_handling" "want_iec_60559_attrib_ext" "tgmath_operator_evaluation"
+        ;; + N3853 (defer TS, latest draft)
+        "defer_ts25755" "version_stddefer_h"
+        ;; + N1388 (dynamic allocation TR)
+        "alloc_lib" "want_lib_ext2"))))
+  (upcase value)
+)}__$0

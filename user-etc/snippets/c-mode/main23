@@ -1,0 +1,24 @@
+# -*- mode: snippet -*-
+# name: main (C23 and later)
+# key: main23
+# --
+#include <stdio.h>
+#include <stdlib.h>
+
+${4:#if __STDC_NO_VLA__
+    #define $2()
+#else
+    #define $2() $2
+#endif
+
+}int main(
+    ${1:${5:$(when (length> yas-text 0) "[[")}${5:maybe_unused}${5:$(when (length> yas-text 0) "]]")} int ${2:argc},
+    ${5:$(when (length> yas-text 0) "[[")}$5${5:$(when (length> yas-text 0) "]]")} char* ${3:argv}[static $2${4:$(unless (and (yas-field-value 2)
+             (not (string-match-p (rx bol (* space) "#" (* space) "define"
+                                      (* space) (literal (yas-field-value 2)) "()"
+                                      (* space) (literal (yas-field-value 2)) eol)
+                                  yas-text)))
+  "()")} + 1]}
+) {
+    $0
+}

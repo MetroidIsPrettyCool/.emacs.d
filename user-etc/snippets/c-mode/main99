@@ -1,0 +1,22 @@
+# -*- mode: snippet -*-
+# name: main (C99 or later)
+# key: main99
+# --
+#include <stdio.h>
+#include <stdlib.h>
+
+${4:#if __STDC_NO_VLA__
+    #define $2()
+#else
+    #define $2() $2
+#endif
+
+}int main(${1:int ${2:argc}, char* ${3:argv}[static $2${4:$(unless (and (yas-field-value 2)
+             (not (string-match-p (rx bol (* space) "#" (* space) "define"
+                                      (* space) (literal (yas-field-value 2)) "()"
+                                      (* space) (literal (yas-field-value 2)) eol)
+                                  yas-text)))
+  "()")} + 1]}${1:$(when (equal yas-text "") "void")}) {
+    ${5:(void)$2, (void)$3;
+    }$0
+}

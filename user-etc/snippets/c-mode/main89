@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: main (C89 or later)
+# key: main89
+# --
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(${1:int ${2:argc}, char* ${3:argv}[]}${1:$(when (equal yas-text "") "void")}) {
+    ${4:(void)$2, (void)$3;
+    }$0
+    return EXIT_SUCCESS;
+}

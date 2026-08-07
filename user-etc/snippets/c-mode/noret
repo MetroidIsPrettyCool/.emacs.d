@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [[noreturn]]
+# key: noret
+# --
+[[noreturn]]$0

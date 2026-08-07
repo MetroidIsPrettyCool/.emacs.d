@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [[unsequenced]]
+# key: unseq
+# --
+[[unsequenced]]$0

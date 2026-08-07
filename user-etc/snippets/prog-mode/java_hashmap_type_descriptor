@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: java hashmap type descriptor
+# key: juh
+# group: java descriptors
+# --
+Ljava/util/Hashmap;

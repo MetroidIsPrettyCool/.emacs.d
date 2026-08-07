@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: -Wall -Wextra -pedantic
+# key: wall
+# --
+-Wall -Wextra ${1:-Werror}${1:$(when (length> yas-text 0) " ")}-pedantic${2:-errors} $0

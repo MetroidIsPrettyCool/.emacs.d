@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [[fallthrough]]
+# key: fall
+# --
+[[fallthrough]];$0

@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: #ifndef XXX; #define XXX; #endif
+# key: once
+# --
+#ifndef ${1:`(if-let* ((name (buffer-file-name))) (upcase (replace-regexp-in-string (rx (+ (any space punct cntrl))) "_" (if-let* ((current-project (project-current))) (concat (project-name current-project) "_" (string-remove-prefix "src/" (file-relative-name name (project-root (project-current nil (file-name-directory name)))))) (file-name-nondirectory name)))) "_H")`}
+#define $1
+
+$0
+
+#endif /* $1 */

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [[reproducible]]
+# key: repro
+# --
+[[reproducible]]$0

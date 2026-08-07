@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: fputs(3)
+# key: puts
+# --
+fputs("${2:foo}\n", ${1:stdout});$0

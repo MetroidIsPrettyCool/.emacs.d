@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: java object type descriptor
+# key: jlo
+# group: java descriptors
+# --
+Ljava/lang/Object;

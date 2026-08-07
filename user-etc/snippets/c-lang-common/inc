@@ -1,0 +1,25 @@
+# -*- mode: snippet -*-
+# name: #include <...>
+# key: inc
+# condition: (string-match-p (rx bol (* (any space)) "inc" eol) (thing-at-point 'line))
+# --
+#include <${1:$$(yas-choose-value
+ '(;; N3220 (C23 IS, equal-in-all-but-name draft)
+   "assert" "complex" "ctype" "errno" "fenv" "float" "inttypes" "iso646" "limits" "locale" "math" "setjmp" "signal"
+   "stdalign" "stdarg" "stdatomic" "stdbit" "stdbool" "stdckdint" "stddef" "stdint" "stdio" "stdlib" "stdnoreturn"
+   "string" "tgmath" "threads" "time" "uchar" "wchar" "wctype"
+   ;; + IEEE Std 1003.1-2024 Edition (POSIX.1-2024)
+   "aio" "arpa/inet" "cpio" "devctl" "dirent" "dlfcn" "endian" "fcntl" "fmtmsg" "fnmatch" "ftw" "glob" "grp" "iconv"
+   "langinfo" "libgen" "libintl" "monetary" "mqueue" "ndbm" "net/if" "netdb" "netinet/in" "netinet/tcp" "nl_types"
+   "poll" "pthread" "pwd" "regex" "sched" "search" "semaphore" "spawn" "strings" "sys/ipc" "sys/mman" "sys/msg"
+   "sys/resource" "sys/select" "sys/sem" "sys/shm" "sys/socket" "sys/stat" "sys/statvfs" "sys/sys/times" "sys/types"
+   "sys/uio" "sys/un" "sys/utsname" "sys/wait" "syslog" "tar" "termios" "unistd" "utmpx" "wordexp"
+   ;; + N3886 (C2y IS, latest draft)
+   "stdcountof" "stdmchar"
+   ;; + N3853 (defer TS, latest draft)
+   "stddefer"
+   ;; + ISO/IEC TR 18037 (embedded processor TR)
+   "stdfix" "iohw"
+   ;; + GNU Autoconf
+   "config")
+)}.h>$0

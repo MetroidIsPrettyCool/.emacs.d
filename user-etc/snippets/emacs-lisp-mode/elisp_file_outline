@@ -1,0 +1,32 @@
+# -*- mode: snippet -*-
+# name: elisp file outline
+# key: outline
+# condition: buffer-file-name
+# --
+;;; ${1:`(file-name-nondirectory (or buffer-file-name (concat (buffer-name) ".el")))`} --- ${2:frobnicator for foobar files}  -*- lexical-binding: t; -*-
+
+;; Copyright (C) ${3:`(format-time-string "%Y")`} ${4:`user-full-name`}
+
+${5:${6:$(unless (equal yas-text "") ";; Author: ")}${6:$4}${6:$(unless (equal yas-text "") "
+")}${7:$(unless (equal yas-text "") ";; Maintainer: ")}${7:$6}${7:$(unless (equal yas-text "") "
+")}${8:$(unless (equal yas-text "") ";; Created: ")}${8:`(format-time-string "%e %b %Y")`}${8:$(unless (equal yas-text "") "
+")}${9:$(unless (equal yas-text "") ";; Version: ")}${9:0.1.0}${9:$(unless (equal yas-text "") "
+")}${10:$(unless (equal yas-text "") ";; Package-Requires: (")}${10:`(format "(emacs \"%s\")" emacs-version)`}${10:$(unless (equal yas-text "") ")
+")}${11:$(unless (equal yas-text "") ";; Homepage: ")}${11:https://www.example.com}${11:$(unless (equal yas-text "") "
+")}${12:$(unless (equal yas-text "") ";; Keywords: ")}${12:foo bar baz}${12:$(unless (equal yas-text "") "
+")}
+};; This file is not part of GNU Emacs.
+
+${13:;; This Source Code Form is subject to the terms of the Mozilla Public
+;; License, v. 2.0. If a copy of the MPL was not distributed with this
+;; file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+};;; Commentary:
+
+;;; Code:
+
+$0
+
+(provide '${1:$(file-name-sans-extension yas-text)})
+
+;;; $1 ends here

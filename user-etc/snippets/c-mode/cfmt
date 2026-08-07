@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: clang-format Language: C
+# key: cfmt
+# --
+// clang-format Language: C$0

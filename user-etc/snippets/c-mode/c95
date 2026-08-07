@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: __STDC_VERSION__ constant for C95
+# key: c95
+# --
+199409L$0

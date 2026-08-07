@@ -1,0 +1,102 @@
+# -*- mode: snippet -*-
+# name: include all standard string, character and text-related headers
+# key: string
+# --
+/* TEMPLATE:
+ * Include all standard string, character and text-related headers: */
+#if __STDC__ && (__STDC_VERSION__ < 199901L || __STDC_HOSTED__)
+    #include <ctype.h>                          /* Character handling */
+    #include <locale.h>                               /* Localization */
+    #include <stdio.h>                                /* Input/output */
+    #include <string.h>                            /* String handling */
+#endif
+#if __STDC_VERSION__ >= 199409L \\
+    && (__STDC_VERSION__ < 199901L || __STDC_HOSTED__)
+    #include <wchar.h>                 /* Extended multibyte and wide
+                                        *         character utilities */
+    #include <wctype.h>              /* Wide character classification
+                                      *         and mapping utilities */
+#endif
+#if __STDC_VERSION__ >= 201112L && __STDC_HOSTED__
+    #include <uchar.h>                           /* Unicode utilities */
+#endif
+#if __STDC_VERSION__ >= (202311L + 1) && __STDC_HOSTED__
+    #include <stdmchar.h>               /* Text transcoding utilities */
+#endif
+/* Information about the upcoming <stdmchar.h> can be found in the C2y
+ * working drafts, beginning with N3435.
+ *
+ * TODO: Replace (202311L + 1) with the correct constant for C2y when it
+ * releases.
+ *
+ * The following predefined macros may be of note:
+ *
+ * Since C99 (__STDC_VERSION__ == 199901L):
+ *
+ * - __STDC_MB_MIGHT_NEQ_WC__
+ *
+ *   Conditionally defined to be exactly 1 if
+ *   "in the encoding for wchar_t, a member of the basic character set
+ *   need not have a code value equal to its value when used as the lone
+ *   character in an integer character constant." (N1256)
+ *
+ * - __STDC_ISO_10646__
+ *
+ *   Conditionally defined to be an "integer constant of the form
+ *   yyyymmL (for example, 199712L). If this symbol is defined, then
+ *   every character in the Unicode required set, when stored in an
+ *   object of type wchar_t, has the same value as the short identifier
+ *   of that character. The Unicode required set consists of all the
+ *   characters that are defined by ISO/IEC 10646, along with all
+ *   amendments and technical corrigenda, as of the specified year and
+ *   month." (N1256)
+ *
+ * Since C11 (__STDC_VERSION__ == 201112L):
+ *
+ * - __STDC_UTF_16__
+ *
+ *   Conditionally defined to be exactly 1 if char16_t uses the UTF-16
+ *   encoding. (This is mandatory beginning with C23.)
+ *
+ * - __STDC_UTF_32__
+ *
+ *   Conditionally defined to be exactly 1 if char32_t uses the UTF-32
+ *   encoding. (This is mandatory beginning with C23.)
+ *
+ * Upcoming in C2y:
+ *
+ * - __STDC_LITERAL_UTF8__
+ *
+ *   Conditionally defined to be "a strictly positive integer constant
+ *   expression" (N3886) if string literals are Unicode and UTF-8
+ *   encoded.
+ *
+ * - __STDC_LITERAL_UTF16__
+ *
+ *   Conditionally defined to be "a strictly positive integer constant
+ *   expression" (N3886) if string literals are Unicode and UTF-16
+ *   encoded.
+ *
+ * - __STDC_LITERAL_UTF32__
+ *
+ *   Conditionally defined to be "a strictly positive integer constant
+ *   expression" (N3886) if string literals are Unicode and UTF-32
+ *   encoded.
+ *
+ * - __STDC_WIDE_LITERAL_UTF8__
+ *
+ *   Conditionally defined to be "a strictly positive integer constant
+ *   expression" (N3886) if wide string literals are Unicode and UTF-8
+ *   encoded.
+ *
+ * - __STDC_WIDE_LITERAL_UTF16__
+ *
+ *   Conditionally defined to be "a strictly positive integer constant
+ *   expression" (N3886) if wide string literals are Unicode and UTF-16
+ *   encoded.
+ *
+ * - __STDC_WIDE_LITERAL_UTF32__
+ *
+ *   Conditionally defined to be "a strictly positive integer constant
+ *   expression" (N3886) if wide string literals are Unicode and UTF-32
+ *   encoded. */$0

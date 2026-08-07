@@ -1,0 +1,71 @@
+@import "https://overpass-30e2.kxcdn.com/overpass.css";
+@import "https://overpass-30e2.kxcdn.com/overpass-mono.css";
+
+@namespace "http://www.w3.org/1999/xhtml";
+
+body { background: snow; font-family: overpass; }
+
+/* these are the standard HTML5 elements which use monospace-family fonts by default */
+pre, code, kbd, samp { font-family: overpass-mono; }
+
+/* center these guys in center blocks */
+.org-center img,
+.org-center table
+{
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+}
+
+/* if there's only a single centered image, shrink it */
+.org-center > figure:only-child > img,
+.org-center > img:only-child
+{
+    max-width: 50%;
+}
+
+/* otherwise, images shouldn't escape the sizes of their containers */
+img { max-width: 100%; }
+
+/* tables shouldn't ever be this small */
+table { min-width: 30%; }
+
+/* and table cells shouldn't be so tight */
+td, th { padding-inline-start: 1ch; padding-inline-end: 1ch; }
+
+/* give src blocks a dark background */
+pre.src { background-color: #0D0D0D; color: white; }
+
+/* borders */
+pre, table                             { border:        inset  medium gray  ; border-radius: 0; }
+colgroup                               { border-right:  solid  thin   black }
+col:not(:first-child)                  { border-left:   dashed thin   gray  }
+col:not(:last-child)                   { border-right:  dashed thin   gray  }
+thead > tr                             { border-bottom: solid  thin   black }
+tbody > tr:not(:last-child)            { border-bottom: dashed thin   gray  }
+tbody:not(:last-child) > tr:last-child { border-bottom: solid  thin   black }
+
+/* trying to get paragraphs in lists to look better */
+dl p, ol p, ul p { margin-block-start: 0; margin-block-end: 0; }
+
+dl:has(> dd > p + p) > dt { margin-block-start: 1em; }
+dl:has(> dd > p + p) > dd { margin-block-end:   1em; }
+
+dl:has(> dd > p + p) > * > p,
+ol:has(> li > p + p) > * > p,
+ol:has(> li > p + p) > li,
+ul:has(> li > p + p) > * > p,
+ul:has(> li > p + p) > li
+{
+    margin-block-start: 1em;
+    margin-block-end: 1em
+}
+
+/* asides */
+aside { margin-left: 50%; text-align: right; font-size: smaller; }
+
+/* and fixes for some of the src block names */
+pre.src-c::before     { content: "C";    }
+pre.src-C\+\+::before,
+pre.src-c\+\+::before { content: "C++";  }
+pre.src-json::before  { content: "JSON"; }
+pre.src-rust::before  { content: "Rust"; }

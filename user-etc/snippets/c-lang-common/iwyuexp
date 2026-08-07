@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: IWYU export block
+# key: iwyuexp
+# --
+/* IWYU pragma: begin_exports */
+$0
+/* IWYU pragma: end_exports */

@@ -1,0 +1,13 @@
+*
+
+!init.el
+!.gitignore
+!user-etc
+!user-lisp
+!user-etc/**/*
+!user-lisp/**/*
+
+user-lisp/custom.el
+user-etc/startup-file.org
+*.elc
+*~

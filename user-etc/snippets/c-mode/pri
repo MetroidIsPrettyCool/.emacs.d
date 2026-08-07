@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: <inttypes.h> PRI macro
+# key: pri
+# --
+PRI${1:$$(yas-choose-value
+  '("d" "i" "b" "o" "u" "x" "X" "B")
+)}${2:$$(when-let*
+  ((value (yas-choose-value
+            '("least" "fast" "max" "ptr"))))
+  (upcase value)
+)}${3:8}$0
