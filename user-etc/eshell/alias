@@ -1,4 +1,4 @@
-alias cfg ./configure
+alias cfg ../configure $@*
 alias rm rm-warning.sh
 alias ct clear t
 alias oo find-file-other-window $@*

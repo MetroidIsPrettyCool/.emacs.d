@@ -11,9 +11,9 @@
 
 ;;;; TODO: Look into hyperbole.
 
-;;;; TODO: Look into (info "(elisp) Translation Keymaps") for `mipc-insert-map'.
-
 ;;;; TODO: Key combination to toggle fringe. Globally and per-window?
+
+;;;; TODO: Custom shortdoc for `mipc-commands-to-remember'.
 
 ;;;; TODO: Changes to make once Emacs 31 lands:
 
@@ -146,16 +146,17 @@
     (ibuffer-filter-by-used-mode ibuffer-mode-map ibuffer)
     (isearch-forward-word)
     (isearch-repeat-forward isearch-mode-map)
-    (isearch-toggle-case-fold isearch-mode-map))
+    (isearch-toggle-case-fold isearch-mode-map)
+    (same-window-prefix))
   "Alist of commands I use rarely but don't want to forget.
 
 Each entry takes the form (COMMAND &optional MAP REQUIRE), where MAP
 will be passed to `where-is-internal' as the key map(s) to look in, and
 REQUIRE will be `require'-ed to load the keymap if non-nil.")
 
-(defconst mipc-key-prefix
-  (if (or (daemonp) (display-graphic-p)) "H-" "<home> ")
-  "Literal string to prefix to every non-shadow key binding.")
+(defconst mipc-home-to-hyper
+  (not (or (daemonp) (display-graphic-p)))
+  "Should we translate <home> to H-?.")
 
 (defconst mipc-swap-backspace-and-del
   (not (or (daemonp) (display-graphic-p)))
@@ -402,7 +403,7 @@ Not a very good idea. Appealing, though...")
       ,(font-spec :name "Symbola")))
 
   (defconst mipc-font-rescales
-  `((,(rx "Noto Sans CJK") . 0.92)))
+    `((,(rx "Noto Sans CJK") . 0.9)))
 
   (dolist (elt mipc-font-rescales)
     (add-to-list 'face-font-rescale-alist elt))
@@ -591,8 +592,24 @@ some \"element\" as described in the help page for
   (key-translate "C-h" "<DEL>")
   (keymap-set global-map "C-x ?" 'help-command))
 
-(when (key-valid-p (string-trim mipc-key-prefix))
-  (unbind-key (string-trim mipc-key-prefix) global-map))
+(when mipc-home-to-hyper
+  (unbind-key "<home>" global-map)
+
+  ;; The definition of this function was adapted from an example in the Emacs
+  ;; manual, (info "(elisp) Translation Keymaps")
+  (defun mipc-hyperify-next-event (prompt)
+    (let ((e (read-event)))
+      (vector
+       (cond ((memq 'hyper (event-modifiers e))
+              e)
+             ((numberp e)
+              (logior (ash 1 24) e))
+             ((symbolp e)
+              (intern (concat "H-" (symbol-name e))))
+             ((consp e)
+              (cons (intern (concat "H-" (symbol-name (car e)))) (cdr e)))))))
+
+  (keymap-set local-function-key-map "<home>" #'mipc-hyperify-next-event))
 
 ;;;; Global Map / Unbound
 
@@ -643,8 +660,7 @@ Essentially the opposite of `fill-paragraph'"
                      (t           (error "No data for atom!")))))))
       (yank)))
 
-  (keymap-set global-map (concat mipc-key-prefix "y")
-              #'mipc-yank-with-target)
+  (keymap-set global-map "H-y" #'mipc-yank-with-target)
   (keymap-set global-map "C-c y" #'mipc-yank-with-target))
 
 (defun mipc-de-ocr-buffer (&optional buffer)
@@ -1025,10 +1041,12 @@ set PRESERVE-BREAKS to non-nil."
 
 ;; (use-package mipc-ff-hline :custom (mipc-ff-hline-global-mode t))
 
+(unbind-key "C-f" help-map)
+
 ;;;; Toggles Map
 
 (defvar-keymap mipc-toggle-map :doc "Keymap for toggle commands.")
-(keymap-set global-map (concat mipc-key-prefix "t") mipc-toggle-map)
+(keymap-set global-map "H-t" mipc-toggle-map)
 (keymap-set global-map "C-c t" mipc-toggle-map)
 
 ;;;; Search and Replace Map
@@ -1036,7 +1054,7 @@ set PRESERVE-BREAKS to non-nil."
 (defvar-keymap mipc-search-and-replace-map
   :repeat t
   :doc "Keymap for search and replace commands.")
-(keymap-set global-map (concat mipc-key-prefix "s") mipc-search-and-replace-map)
+(keymap-set global-map "H-s" mipc-search-and-replace-map)
 (keymap-set global-map "C-c s" mipc-search-and-replace-map)
 
 (keymap-set mipc-search-and-replace-map "H-s" #'search-forward-regexp)
@@ -1048,36 +1066,31 @@ set PRESERVE-BREAKS to non-nil."
 (keymap-set mipc-search-and-replace-map "H-l" #'list-matching-lines)
 (keymap-set mipc-search-and-replace-map "l"   #'list-matching-lines)
 
-;;;; Insert Map
+;;;; Insert Map (Ficticious)
 
 (defvar-keymap mipc-insert-map :repeat t :doc "Keymap for insertion commands.")
-(keymap-set global-map (concat mipc-key-prefix "i") mipc-insert-map)
+(keymap-set global-map "H-i" mipc-insert-map)
 (keymap-set global-map "C-c i" mipc-insert-map)
 
 (keymap-set mipc-insert-map "H-s" "¯ \\ _ ( ツ ) _ / ¯")
 (keymap-set mipc-insert-map "s"   "¯ \\ _ ( ツ ) _ / ¯")
 
-(keymap-set mipc-insert-map "H-#" "█")
-(keymap-set mipc-insert-map "#"   "█")
-
-(keymap-set mipc-insert-map "H-," "‚")
-(keymap-set mipc-insert-map ","   "‚")
-
-(defun mipc-insert-zwsp (uarg)
-  "Insert zero-width spaces according to prefix argument."
-  (interactive "p")
-  (insert-char #x200b uarg))
-(keymap-set mipc-insert-map
-            "H-z"
-            "C-x 8 RET Z E R O SPC W I D T H SPC S P A C E RET")
-(keymap-set mipc-insert-map
-            "z"
-            "C-x 8 RET Z E R O SPC W I D T H SPC S P A C E RET")
+(dolist (elt `(("z" . ,(char-to-string (char-from-name "ZERO WIDTH SPACE")))
+               ("#" . "█")
+               ("," . "‚")))
+  (keymap-set key-translation-map
+              (concat "H-i H-"   (car elt)) (cdr elt))
+  (keymap-set key-translation-map
+              (concat "H-i "     (car elt)) (cdr elt))
+  (keymap-set key-translation-map
+              (concat "C-c i H-" (car elt)) (cdr elt))
+  (keymap-set key-translation-map
+              (concat "C-c i "   (car elt)) (cdr elt)))
 
 ;;;; List Map
 (defvar-keymap mipc-list-map :doc "Keymap for commands that list things.")
-(keymap-set global-map (concat mipc-key-prefix "l") mipc-list-map)
-(keymap-set global-map "C-c l"                      mipc-list-map)
+(keymap-set global-map "H-l" mipc-list-map)
+(keymap-set global-map "C-c l" mipc-list-map)
 
 (keymap-set mipc-list-map "H-d" #'dired)
 (keymap-set mipc-list-map "d"   #'dired)
@@ -1109,7 +1122,7 @@ set PRESERVE-BREAKS to non-nil."
 ;;;; Miscellaneous Map
 
 (defvar-keymap mipc-misc-map :doc "Keymap for miscellaneous commands.")
-(keymap-set global-map (concat mipc-key-prefix "x") mipc-misc-map)
+(keymap-set global-map "H-x" mipc-misc-map)
 (keymap-set global-map "C-c x" mipc-misc-map)
 
 (defun mipc-dump-buffer-local-variables ()
@@ -1507,7 +1520,8 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 (use-package flyspell
   :defer t
   :hook
-  (((prog-mode conf-mode) . flyspell-prog-mode) (text-mode . flyspell-mode)))
+  (((prog-mode conf-mode) . flyspell-prog-mode)
+   (text-mode . flyspell-mode)))
 
 ;;;; `frameshot-mode'
 
@@ -1765,13 +1779,13 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 ;;;; `vlf-mode'
 
-;; Specialized mode for opening Very Large Files. Loading `vlf-setup'
+;; Specialized mode for opening Very Large Files. Works... okay.
+
+(use-package vlf :ensure t :config (require 'vlf-setup))
 
 ;;;; `wgrep-mode'
 
 (use-package wgrep :ensure t :defer t)
-
-(use-package vlf :ensure t :config (require 'vlf-setup))
 
 ;;;; `yas-minor-mode'
 
@@ -1802,11 +1816,12 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 ;; The Ada programming language. I usually prefer `lsp-mode' over `eglot', but
 ;; I'm not touching this until I remember what these settings mean.
 
-(when mipc-use-lsp (use-package ada-mode
-                     :ensure t
-                     :custom
-                     (ada-indent-backend 'eglot)
-                     (ada-statement-backend 'eglot)))
+(when mipc-use-lsp
+  (use-package ada-mode
+    :ensure t
+    :custom
+    (ada-indent-backend 'eglot)
+    (ada-statement-backend 'eglot)))
 
 ;;;; Assembly
 
@@ -1821,9 +1836,25 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 (use-package basic-mode :ensure t :defer t)
 
-;;;; C
+;;;; C/C++
 
 (when (assoc-default 'tree-sitter mipc-ext-deps #'eq t)
+  (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode))
+
+  (use-package treesit
+    :defer t
+    :config
+    (add-to-list 'treesit-language-source-alist
+                 '(c "https://github.com/tree-sitter/tree-sitter-c"))
+    (add-to-list 'treesit-language-source-alist
+                 '(cpp "https://github.com/tree-sitter/tree-sitter-cpp"))
+    (unless (treesit-language-available-p 'c)
+      (treesit-install-language-grammar 'c))
+    (unless (treesit-language-available-p 'cpp)
+      (treesit-install-language-grammar 'cpp)))
+
   (use-package c-ts-mode
     :defer t
     :after mipc-c-ts
@@ -1834,11 +1865,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
   (use-package mipc-c-ts
     :defer t
     :hook ((c-ts-mode . mipc-c-ts-extra-font-lock-rules)
-           (c-ts-mode . mipc-c-ts-adjust-syntax-table)))
-
-  (add-to-list 'major-mode-remap-alist '(c-mode        . c-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c++-mode      . c++-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode)))
+           (c-ts-mode . mipc-c-ts-adjust-syntax-table))))
 
 (when (assoc-default 'clang mipc-ext-deps #'eq t)
   (use-package company-clang
@@ -1966,22 +1993,6 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
     (apply #'concat (nreverse ps1))))
 
-(defun mipc-catfl1 (file &optional minor-modes)
-  (with-temp-buffer
-    (insert-file-contents file t)
-    (normal-mode)
-    ;; (when (or (eq major-mode 'csv-mode)
-    ;;           (eq major-mode 'tsv-mode))
-    ;;   (csv-align-fields t (point-min) (point-max)))
-    (dolist (mode minor-modes)
-      (funcall mode 1))
-    (font-lock-fontify-buffer)
-    (prog1 (buffer-substring (point-min) (point-max))
-      (set-buffer-modified-p nil)
-      ;; (let ((kill-buffer-query-functions))
-      ;;   (kill-buffer))
-      )))
-
 (defun eshell/catfl (&rest files)
   "font-lock, concatenate and print files to eshell."
   (let ((minor-modes))
@@ -1995,6 +2006,41 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
                  (push mode minor-modes))))
             (t
              (eshell-print (mipc-catfl1 file-or-mode minor-modes)))))))
+
+(defun mipc-catfl1 (file &optional minor-modes)
+  (with-temp-buffer
+    (with-silent-modifications
+      (insert-file-contents file t)
+      (normal-mode)
+      (dolist (mode minor-modes)
+        (funcall mode 1))
+      (font-lock-fontify-buffer)
+      ;; attempt to neutralize any problematic text properties
+      (remove-text-properties (point-min) (point-max)
+                              '(help-echo                      nil
+                                help-echo-inhibit-substitution nil
+                                left-fringe-help               nil
+                                right-fringe-help              nil
+                                keymap                         nil
+                                local-map                      nil
+                                syntax-table                   nil
+                                read-only                      nil
+                                inhibit-read-only              nil
+                                inhibit-isearch                nil
+                                field                          nil
+                                wrap-prefix                    nil
+                                line-prefix                    nil
+                                modification-hooks             nil
+                                insert-in-front-hooks          nil
+                                insert-behind-hooks            nil
+                                cursor-sensor-functions        nil
+                                minibuffer-message             nil
+                                display-line-numbers-disable   nil
+                                hard                           nil
+                                right-margin                   nil
+                                left-margin                    nil
+                                justification                  nil)))
+    (buffer-substring (point-min) (point-max))))
 
 (defun eshell/catb (&rest args)
   (seq-mapcat
@@ -2040,7 +2086,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 ;;;; Gopher
 
-;; As in the application protocol.
+;; (As in the application protocol.)
 
 (use-package elpher :ensure t :defer t)
 
@@ -2480,10 +2526,10 @@ with \"*Man\" will also be matched."
            (assoc-default 'slint-lsp mipc-ext-deps #'eq t))
   (use-package lsp-mode :ensure t :defer t :hook slint-mode))
 
-(use-package rainbow-mode
-  :ensure t
-  :defer t
-  :hook (slint-mode . (lambda () (unless rainbow-mode (rainbow-mode)))))
+;; (use-package rainbow-mode
+;;   :ensure t
+;;   :defer t
+;;   :hook (slint-mode . (lambda () (unless rainbow-mode (rainbow-mode)))))
 
 ;;;; Web (HTML/XHTML, CSS, ECMAScript/JavaScript)
 
@@ -2503,9 +2549,17 @@ with \"*Man\" will also be matched."
   :custom (eww-bookmarks-directory (expand-file-name "eww/" mipc-data-dir)))
 
 ;; Always close tags
-(use-package sgml-mode :defer :custom (sgml-xml-mode t))
+(use-package sgml-mode :defer t :custom (sgml-xml-mode t))
 
-(add-to-list 'major-mode-remap-alist '(css-mode . css-ts-mode))
+(when (assoc-default 'tree-sitter mipc-ext-deps #'eq t)
+  (add-to-list 'major-mode-remap-alist '(css-mode . css-ts-mode))
+  (use-package treesit
+    :defer t
+    :config
+    (add-to-list 'treesit-language-source-alist
+                 '(css "https://github.com/tree-sitter/tree-sitter-css"))
+    (unless (treesit-language-available-p 'css)
+      (treesit-install-language-grammar 'css))))
 
 ;;;; YAML
 
