@@ -1,0 +1,45 @@
+# -*- mode: snippet -*-
+# name: CC0-1.0 header
+# key: cc0
+# condition: yas-not-string-or-comment-condition
+# type: command
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+# --
+(let ((outer-buffer (current-buffer))
+      (yas-indent-line 'fixed))
+  (yas-expand-snippet
+   (with-temp-buffer
+     ;; TODO: figure out more precisely what we should clone from the parent mode. This is just every variable I could
+     ;; find defined that started with `comment-*' + `fill-column'.
+     (dolist (var '(fill-column comment-add comment-auto-fill-only-comments comment-column comment-combine-change-calls
+                    comment-continue comment-empty-lines comment-end comment-end-can-be-escaped comment-end-skip
+                    comment-fill-column comment-indent-function comment-inline-offset comment-insert-comment-function
+                    comment-line-break-function comment-multi-line comment-padding comment-quote-nested
+                    comment-quote-nested-function comment-region-function comment-start comment-start-skip comment-style
+                    comment-styles comment-use-global-state comment-use-syntax comment-use-syntax-ppss))
+       (when-let* ((entry (assq var (buffer-local-variables outer-buffer))))
+         (set (make-local-variable var) (cdr entry))))
+
+     (pcase outer-major-mode
+       ((or 'rust-mode 'rust-ts-mode 'java-mode 'java-ts-mode)
+        (setq-local header-type "/* "))
+       (_
+        (setq-local header-type comment-start)))
+
+     (pcase header-type
+       ("<!-- "
+        (insert "<!-- Any copyright is dedicated to the Public Domain.\n"
+                "   - https://creativecommons.org/publicdomain/zero/1.0/ -->"))
+       ("/* "
+        (insert "/* Any copyright is dedicated to the Public Domain.\n"
+                " * <http://creativecommons.org/publicdomain/zero/1.0/> */\n"))
+       (_
+        (insert "Any copyright is dedicated to the Public Domain.\n"
+                "<http://creativecommons.org/publicdomain/zero/1.0/>")
+        (comment-region (point-min) (point-max))))
+     (goto-char (point-max))
+     (insert "$0")
+     (buffer-string))))

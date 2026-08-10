@@ -1,6 +1,10 @@
 # -*- mode: snippet -*-
 # name: read file while
 # key: readwhile
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # --
 while IFS="" read -r ${1:line} || `(when (eq sh-shell 'bash) "[")`[ -n `(unless (eq sh-shell 'bash) "\"")`$$1`(unless (eq sh-shell 'bash) "\"")` ]`(when (eq sh-shell 'bash) "]")`; do
     $0

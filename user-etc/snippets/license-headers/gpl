@@ -1,0 +1,73 @@
+# -*- mode: snippet -*-
+# name: GPL-3.0-or-later header
+# key: gpl
+# condition: yas-not-string-or-comment-condition
+# type: command
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+# --
+(let ((outer-buffer (current-buffer))
+      (outer-major-mode major-mode)
+      (yas-indent-line 'fixed))
+  (yas-expand-snippet
+   (with-temp-buffer
+     ;; TODO: figure out more precisely what we should clone from the parent mode. This is just every variable I could
+     ;; find defined that started with `comment-*' + `fill-column'.
+     (dolist (var '(fill-column comment-add comment-auto-fill-only-comments comment-column comment-combine-change-calls
+                    comment-continue comment-empty-lines comment-end comment-end-can-be-escaped comment-end-skip
+                    comment-fill-column comment-indent-function comment-inline-offset comment-insert-comment-function
+                    comment-line-break-function comment-multi-line comment-padding comment-quote-nested
+                    comment-quote-nested-function comment-region-function comment-start comment-start-skip comment-style
+                    comment-styles comment-use-global-state comment-use-syntax comment-use-syntax-ppss))
+       (when-let* ((entry (assq var (buffer-local-variables outer-buffer))))
+         (set (make-local-variable var) (cdr entry))))
+
+     (pcase outer-major-mode
+       ((or 'rust-mode 'rust-ts-mode 'java-mode 'java-ts-mode)
+        (setq-local header-type "/* "))
+       (_
+        (setq-local header-type comment-start)))
+
+     (insert "${1:frobnicator for foobar files.}\n\n"
+             "Copyright (c)"
+             " ${2:`(format-time-string \"%Y\")`}"
+             " ${3:`(or user-full-name \"\")`}"
+             " ${4:$(if (equal yas-text \"\") \"\" \"<\")}"
+             "${4:`(or user-mail-address \"\")`}"
+             "${4:$(if (equal yas-text \"\") \"\" \">\")}\n\n"
+             "${5:This file is part of ${6:Foobar}.}"
+             "${5:$(when (length> yas-text 0) \"\\n\\n\")}"
+             "${6:$(cond ((not yas-modified-p) \"Foobar\") ((length> yas-text 0) (yas-field-value 6)) (\"This program\"))}"
+             " is free software: you can redistribute it and/or modify\n"
+             "it under the terms of the GNU General Public License as published by\n"
+             "the Free Software Foundation, either version 3 of the License, or (at\n"
+             "your option) any later version.\n\n"
+             "${6:$(cond ((not yas-modified-p) \"Foobar\") ((length> yas-text 0) (yas-field-value 6)) (\"This program\"))}"
+             " is distributed in the hope that it will be useful, but\n"
+             "WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+             "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU\n"
+             "General Public License for more details.\n\n"
+             "You should have received a copy of the GNU General Public License\n"
+             "along with "
+             "${6:$(cond ((not yas-modified-p) \"Foobar\") ((length> yas-text 0) (yas-field-value 6)) (\"this program\"))}"
+             ". If not, see <https://www.gnu.org/licenses/>.")
+
+     (pcase header-type
+       ("<!-- "
+        (goto-char (point-min))
+        (insert "<!-- ")
+        (goto-char (point-max))
+        (insert " -->"))
+       ("/* "
+        (goto-char (point-min))
+        (insert "/* ")
+        (goto-char (point-max))
+        (insert " */"))
+       (_
+        (comment-region (point-min) (point-max))))
+     (goto-char (point-max))
+     (insert "$0")
+     (buffer-string))))
+

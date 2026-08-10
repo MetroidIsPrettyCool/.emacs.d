@@ -1,8 +1,11 @@
 # -*- mode: snippet -*-
 # name: #include<float.h>, #include<inttypes.h>, #include<stdbool.h>, etc.
 # key: stdtypes
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # --
-
 /* Integer types */
 
 /* Since C99. Superset of <stdint.h>, exact-width integer types &

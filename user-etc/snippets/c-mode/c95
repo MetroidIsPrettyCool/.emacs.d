@@ -1,5 +1,9 @@
 # -*- mode: snippet -*-
 # name: __STDC_VERSION__ constant for C95
 # key: c95
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # --
 199409L$0

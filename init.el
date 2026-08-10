@@ -1287,6 +1287,10 @@ subsequent kill command does not append to the same kill ring entry."
 ;; (y'know, like special-mode or comint-mode), and configuration for packages
 ;; that don't provide any modes.
 
+;;;; `advice-patch'
+
+(use-package advice-patch :defer t :ensure t)
+
 ;;;; `align' (built-in)
 
 (use-package align
@@ -1692,7 +1696,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 ;;;; `rainbow-delimiters'
 
-(use-package rainbow-delimiters :defer t :ensure t :hook prog-mode)
+(use-package rainbow-delimiters :ensure t :defer t :hook prog-mode)
 
 ;;;; `rainbow-mode'
 
@@ -1703,7 +1707,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 ;; conventions. You can't toggle it off with numeric arguments, for example.
 ;; PITA! One day I'll wrap or fork it.
 
-(use-package rainbow-mode :defer t :ensure t)
+(use-package rainbow-mode :ensure t :defer t)
 
 ;;;; `savehist-mode' (built-in)
 
@@ -1800,9 +1804,12 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
                           (expand-file-name "snippets" mipc-data-dir)))
   :hook (minibuffer-setup . yas-minor-mode)
 
-  ;; We have to do our keybinding here because `use-package' isn't smart enough
-  ;; to understand this constant.
+  ;; We have to do our keybinding here because `use-package' won't unquote
+  ;; `yas-maybe-expand'.
   :config
+  ;; (advice-patch #'yas--parse-template
+  ;;             '((or "contributor" "SPDX-License-Identifier") nil)
+  ;;             '("contributor" nil))
   (keymap-set minibuffer-local-map "<tab>" yas-maybe-expand)
   (add-to-list 'mipc-whitespace-cleanup-exempt-modes 'snippet-mode))
 
@@ -2260,14 +2267,14 @@ with \"*Man\" will also be matched."
                     mipc-data-dir))
 
 (defun mipc-get-oxhtml-stylesheet ()
-  (let ((stylesheet mipc-oxhtml-cleanup-stylesheet)
-        (minified mipc-oxhtml-cleanup-minified-stylesheet))
-    (if (file-newer-than-file-p minified stylesheet)
+  (let ((stylesheet-path mipc-oxhtml-cleanup-stylesheet)
+        (minified-path mipc-oxhtml-cleanup-minified-stylesheet))
+    (if (file-newer-than-file-p minified-path stylesheet-path)
         (with-temp-buffer
-          (insert-file-contents minified)
+          (insert-file-contents minified-path)
           (buffer-substring-no-properties (point-min) (point-max)))
       (with-temp-buffer
-        (insert-file-contents stylesheet)
+        (insert-file-contents stylesheet-path)
         (when (assoc-default 'esbuild mipc-ext-deps #'eq t)
           (call-process-region (point-min) (point-max)
                                "esbuild"
@@ -2277,8 +2284,16 @@ with \"*Man\" will also be matched."
                                "--minify"
                                "--loader=css"))
         (goto-char (point-max))
-        (when (= (char-before) ?\n) (delete-backward-char 1))
-        (write-file minified)
+        (while (= (char-before) ?\n) (delete-char -1))
+        (goto-char (point-min))
+        (insert "/* SPDX-License-Identifier: MPL-2.0 */\n")
+        (let ((case-fold-search nil))
+          (save-match-data
+            (while (search-forward-regexp (rx "@namespace \"") nil t)
+              (unless (nth 3 (save-excursion (goto-char (match-beginning 0))
+                                             (syntax-ppss)))
+                (replace-match "@namespace\"" t t)))))
+        (write-region nil nil minified-path)
         (buffer-substring-no-properties (point-min) (point-max))))))
 
 (use-package oxhtmlcleanup
