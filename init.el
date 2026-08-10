@@ -147,7 +147,8 @@
     (isearch-forward-word)
     (isearch-repeat-forward isearch-mode-map)
     (isearch-toggle-case-fold isearch-mode-map)
-    (same-window-prefix))
+    (same-window-prefix)
+    (vc-region-history))
   "Alist of commands I use rarely but don't want to forget.
 
 Each entry takes the form (COMMAND &optional MAP REQUIRE), where MAP
@@ -1547,7 +1548,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
    '(("HOLD"       . "#d0bf8f")
      ("TODO"       . "#cc9393")
      ;; ("NEXT"       . "#dca3a3")
-     ;; ("THEM"       . "#dc8cc3")
+     ("THEM"       . "#dc8cc3")
      ;; ("PROG"       . "#7cb8bb")
      ("OKAY"       . "#7cb8bb")
      ("DONT"       . "#5f7f5f")

@@ -22,7 +22,32 @@
 
 ;;;###autoload
 (defun mipc-c-ts-indent-style ()
-  "TODO: rewrite to be more query-based."
+  "Personal C indent style.
+
+Super ad-hoc at the moment. The idea is mainly that I want delimiters to
+be parent-bol 0, and everything inside those delimiters to be indented
+by `c-ts-mode-indent-offset'.
+
+TODO: Rewrite to be more query-based.
+
+TODO: Better handling of labels and cases. I want the following
+behavior: statements are indented 2x `c-ts-mode-indent-offset' from the
+switch (standalone-parent) when their parent is a switch, or their
+immediate ancestors are only labels and cases and then a switch (and
+then whatever). Cases and labels who are children of a switch, or whose
+immediate ancestors are only labels and cases and then a switch, are
+indented to `c-ts-mode-indent-offset' from the
+switch (standalone-parent). All other cases and labels are indented to
+`c-ts-mode-indent-offset' from standalone-parent, and their children to
+0 from standalone-parent.
+
+In other words: we want to treat case_statement and labeled_statement
+like they don't have children besides the label/value, and thus like
+their children's parent is their parent. cases and labels whose
+\"parent\" is a switch are indented to `c-ts-mode-indent-offset' and all
+other statements whose \"parent\" is a switch are indented to 2 *
+`c-ts-mode-indent-offset'; otherwise both are simply indented to
+`c-ts-mode-indent-offset' from their \"parent\"."
   `(((parent-is ,(rx bos "translation_unit" eos)) column-0 0)
 
     (mipc-c-ts-comment-star-at-bol        parent 1)
@@ -43,14 +68,18 @@
              "")
      standalone-parent 0)
 
+    ((n-p-gp "case_statement"
+         ,(rx bos "labeled_statement" eos)
+         ,(rx bos "case_statement" eos))
+     standalone-parent 0)
+
     ((n-p-gp ""
              ,(rx bos "labeled_statement" eos)
              ,(rx bos "case_statement" eos))
      standalone-parent c-ts-mode-indent-offset)
 
-    ((node-is ,(rx bos "labeled_statement" eos)) standalone-parent
-     c-ts-mode-indent-offset)
-    ((parent-is ,(rx bos "labeled_statement" eos)) standalone-parent 0)
+    ((node-is ,(rx bos (or "labeled" "case") "_statement" eos)) standalone-parent c-ts-mode-indent-offset)
+    ((parent-is ,(rx bos (or "labeled" "case") "_statement" eos)) standalone-parent 0)
 
     ((node-is ,(rx bos (or "{" "}") eos)) standalone-parent 0)
     ((match ,(rx bos "]" eos) ,(rx bos "array_declarator" eos))
@@ -163,17 +192,16 @@
            (string-equal child-1-txt child-2-1-txt)))))
 
 (defun mipc-c-ts-comment-star-at-bol (node parent bol)
-  (when (and (not node) parent bol)
-    (when-let* ((parent-type (treesit-node-type parent)))
-      (and (string-equal parent-type "comment")
-           (= (char-after bol) ?*)))))
+  (when-let* (((and (not node) parent bol))
+              (parent-type (treesit-node-type parent)))
+    (and (string-equal parent-type "comment")
+         (= (char-after bol) ?*))))
 
 ;;;###autoload
 (defun mipc-c-ts-extra-font-lock-rules ()
   "Install additional treesitter font-lock rules in buffer.
 
-TODO: (upstream) waiting for
-https://github.com/tree-sitter/tree-sitter-c/pull/293"
+THEM: waiting for https://github.com/tree-sitter/tree-sitter-c/pull/293"
   (setq-local
    treesit-font-lock-settings
    (append
