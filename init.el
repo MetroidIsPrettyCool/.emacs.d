@@ -1810,6 +1810,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
   ;; (advice-patch #'yas--parse-template
   ;;             '((or "contributor" "SPDX-License-Identifier") nil)
   ;;             '("contributor" nil))
+  (require 'mipc-snippet-ccstd)
   (keymap-set minibuffer-local-map "<tab>" yas-maybe-expand)
   (add-to-list 'mipc-whitespace-cleanup-exempt-modes 'snippet-mode))
 
