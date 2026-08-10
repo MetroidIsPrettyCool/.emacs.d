@@ -332,43 +332,7 @@ Not a very good idea. Appealing, though...")
   :custom (custom-enabled-themes '(adora))
   :config
   (custom-set-faces
-   '(default ((t (:family "SauceCode Pro NFM" :height 104))))
-   ;; '(font-lock-comment-face ((t (:foreground "RosyBrown"))))
-   ;; '(font-lock-comment-delimiter-face ((t (:foreground "RosyBrown"))))
-   ;; '(error ((t (:foreground "DeepPink"))))
-   ;; '(secondary-selection ((t (:background "#103520"))))
-   ;; '(tab-bar ((((class color) (min-colors 88))
-   ;;             :inherit variable-pitch
-   ;;             :background "grey85"
-   ;;             :foreground "black")
-   ;;            (((class mono))
-   ;;             :background "grey")
-   ;;            (t
-   ;;             :inverse-video t)))
-   ;; '(tab-bar-tab ((default
-   ;;                 :inherit tab-bar)
-   ;;                (((class color) (min-colors 88))
-   ;;                 :box (:line-width 1 :style released-button)
-   ;;                 :foreground "blue")
-   ;;                (t
-   ;;                 :inverse-video nil)))
-   ;; '(tab-bar-tab-inactive ((default
-   ;;                          :inherit tab-bar-tab)
-   ;;                         (((class color) (min-colors 88))
-   ;;                          :foreground "black"
-   ;;                          :background "grey75")
-   ;;                         (t
-   ;;                          :inverse-video t)))
-   ;; '(rainbow-delimiters-depth-1-face ((t (:foreground "gray80"))))
-   ;; '(rainbow-delimiters-depth-2-face ((t (:foreground "SkyBlue1"))))
-   ;; '(rainbow-delimiters-depth-3-face ((t (:foreground "CadetBlue1"))))
-   ;; '(rainbow-delimiters-depth-4-face ((t (:foreground "LightSteelBlue1"))))
-   ;; '(rainbow-delimiters-depth-5-face ((t (:foreground "turquoise2"))))
-   ;; '(rainbow-delimiters-depth-6-face ((t (:foreground "aquamarine1"))))
-   ;; '(rainbow-delimiters-depth-7-face ((t (:foreground "SeaGreen2"))))
-   ;; '(rainbow-delimiters-depth-8-face ((t (:foreground "DarkOliveGreen3"))))
-   ;; '(rainbow-delimiters-depth-9-face ((t (:foreground "gold"))))
-   ))
+   '(default ((t (:family "SauceCode Pro NFM" :height 104))))))
 
 ;;;; Background
 
@@ -418,26 +382,6 @@ Not a very good idea. Appealing, though...")
   (if (daemonp)
       (add-hook 'after-make-frame-functions 'mipc-force-default-fontset)
     (mipc-force-default-fontset (selected-frame))))
-
-;;;;; Make Zero-Width Characters /Actually/ Display Zero-Width
-
-;; I suppose it depends on what you're doing, but `org-mode' uses ZWSP as an
-;; escape character all the time. I do not want that to fuck over my column
-;; alignment.
-
-(defconst mipc-zero-width-characters
-  '((#x200B . ("ZWSP" . 'empty-box))  ; ZERO WIDTH SPACE
-    (#x200C . ("ZWNJ" . 'empty-box))  ; ZERO WIDTH NON-JOINER
-    (#x200D . ("ZWJ"  . 'empty-box))  ; ZERO WIDTH JOINER
-    (#xFEFF . ("ZBOM" . 'empty-box))) ; ZERO WIDTH NO-BREAK SPACE (BOM)
-  "Alist of characters we want to display as zero-width.
-
-Association of (CODEPOINT-OR-RANGE . DISPLAY) pairs, where DISPLAY is
-some \"element\" as described in the help page for
-`glyphless-char-display'.")
-
-(dolist (char mipc-zero-width-characters)
-  (set-char-table-range glyphless-char-display (car char) 'zero-width))
 
 ;;;;; HACK: Make All Characters <= 1 Wide
 
@@ -612,443 +556,35 @@ some \"element\" as described in the help page for
 
   (keymap-set local-function-key-map "<home>" #'mipc-hyperify-next-event))
 
+(cl-loop for c upfrom ?a to ?z
+         do (keymap-set local-function-key-map
+                        (format "C-c %c" c) (format "H-%c" c)))
+
 ;;;; Global Map / Unbound
 
-(defun mipc-unfill-paragraph ()
-  "Un-fill a paragraph at point.
-
-Essentially the opposite of `fill-paragraph'"
-  (interactive)
-  (let ((fill-column (point-max)))
-    (fill-paragraph nil)))
+(require 'mipc-opposite-day)
 (keymap-set global-map "M-Q" #'mipc-unfill-paragraph)
-
-(defun mipc-yank-pop-forwards (uarg)
-  "`yank-pop' with a reversed understanding of the prefix uargument."
-  (interactive "p")
-  (yank-pop (- uarg)))
 (keymap-set global-map "M-Y" #'mipc-yank-pop-forwards)
-
-(defun mipc-deactivate-mark (uarg)
-  "Interactive wrapper around `deactivate-mark'."
-  (interactive "p")
-  (deactivate-mark uarg))
 (keymap-set global-map "C-S-SPC" #'mipc-deactivate-mark)
+(keymap-set global-map "C-x O" #'mipc-other-window-backward)
 
 (keymap-set global-map "<mouse-9>" #'next-buffer)
 (keymap-set global-map "<mouse-8>" #'previous-buffer)
 
-(when (or (daemonp) (display-graphic-p))
-  (defun mipc-yank-with-target (target)
-    "Yank system clipboard contents using a specific ICCCM TARGET atom."
-    (interactive
-     (if buffer-read-only
-         (user-error "Buffer is read-only: %S" (current-buffer))
-       (list (intern (completing-read
-                      "Target Atom: "
-                      (or (seq-into (gui-get-selection 'CLIPBOARD 'TARGETS)
-                                    'list)
-                          (list 'UTF8_STRING 'COMPOUND_TEXT
-                                'STRING      'text/plain\;charset=utf-8
-                                'text/plain  'text/html
-                                'TIMESTAMP   'TARGETS)))))))
+(require 'mipc-align-untabify)
 
-    (let ((interprogram-paste-function
-           (lambda ()
-             (let ((s (gui-get-selection 'CLIPBOARD target)))
-               (cond ((stringp s) s)
-                     (s           (format "%S" s))
-                     (t           (error "No data for atom!")))))))
-      (yank)))
+(require 'mipc-superscript-region)
 
-  (keymap-set global-map "H-y" #'mipc-yank-with-target)
-  (keymap-set global-map "C-c y" #'mipc-yank-with-target))
-
-(defun mipc-de-ocr-buffer (&optional buffer)
-  (interactive)
-  "Replace fancy unicode characters in BUFFER with ASCII equivalents.
-
-I just use it to clean up copy-pasted OCR'ed text for when I'm working
-in Org mode.
-
-BUFFER may be nil, in which case it will operate on the current buffer."
-  (with-current-buffer (or buffer (current-buffer))
-    (save-mark-and-excursion
-      (save-match-data
-        (replace-string "—"             ; Em Dash
-                        "--" nil (point-min) (point-max))
-        (replace-regexp (rx (| "–"      ; En Dash
-                               "¬"))    ; Not Sign, I've seen OCR mix these up
-                        "-" nil (point-min) (point-max))
-        (replace-regexp (rx (| "“"      ; Left Double Quotation Mark
-                               "”"))    ; Right Double Quotation Mark
-                        "\"" nil (point-min) (point-max))
-        (replace-regexp (rx (| "‘"      ; Left Single Quotation Mark
-                               "’"))    ; Right Single Quotation Mark
-                        "'" nil (point-min) (point-max))))))
-
-(defun mipc-align-untabify (start end &optional tab-width)
-  "Replace tabs and align tabulated lines in region/buffer with spaces."
-  (interactive
-   (list (when (use-region-p) (region-beginning))
-         (when (use-region-p) (region-end))
-         (when current-prefix-arg (prefix-numeric-value current-prefix-arg))))
-  (save-excursion
-    (save-restriction
-      (when (and start end)
-        (narrow-to-region start end))
-      (goto-char (point-min))
-      (let ((lines nil)
-            (field-max-lengths nil)
-            (width (or tab-width 2)))
-        (while
-            (progn
-              (let ((line
-                     (string-split (thing-at-point 'line t)
-                                   (format "\t\\| \\{%d,\\}" width))))
-                (when (cdr line)
-                  (setf (car line)
-                        (string-trim-right (car line))
-
-                        (cdr line)
-                        (seq-map #'string-trim (cdr line)))
-                  (setq field-max-lengths
-                        (mipc-align-untabify--process-fields
-                         field-max-lengths
-                         line))
-                  (push (cons (point) line) lines)))
-              (and (= 0 (forward-line 1))
-                   (not (= (point) (point-max))))))
-        (while lines
-          (let ((line (pop lines)))
-            (goto-char (car line))
-            (delete-line)
-            (mipc-align-untabify--insert-fields width
-                                                  field-max-lengths
-                                                  (cdr line))
-            (delete-char (- width))
-            (insert "\n")))))))
-
-(defun mipc-align-untabify--insert-fields
-    (tab-width field-max-lengths-remaining fields-remaining)
-  (let ((field-max-length (car field-max-lengths-remaining))
-        (field (car fields-remaining)))
-    (insert field
-            (make-string (+ tab-width (- field-max-length (length field))) ?\s))
-    (when (cdr fields-remaining)
-      (mipc-align-untabify--insert-fields
-       tab-width
-       (cdr field-max-lengths-remaining)
-       (cdr fields-remaining)))))
-
-(defun mipc-align-untabify--process-fields
-    (field-max-lengths-remaining fields-remaining)
-  (let ((field-max-length (car field-max-lengths-remaining))
-        (field            (car fields-remaining)))
-    (cons
-     (or (and field-max-length (max field-max-length (length field)))
-         (length field))
-
-     (if (cdr fields-remaining)
-         (mipc-align-untabify--process-fields
-          (cdr field-max-lengths-remaining)
-          (cdr fields-remaining))
-       (cdr field-max-lengths-remaining)))))
-
-(defconst mipc-superscript-monographs
-  (concat
-   "²³¹ʰʱʲʳʴʵʶʷʸˠˡˢˣˤჼᴬᴭᴮᴰᴱᴲᴳᴴᴵᴶᴷᴸᴹᴺᴼᴽᴾᴿᵀᵁᵂᵃᵄᵅᵆᵇᵈᵉᵊᵋᵍᵏᵐᵑᵒᵓᵔᵕᵖᵗᵘᵙᵚᵛᵜᵝᵞᵟᵠᵡᵸᶛᶜᶝᶞᶟᶠ"
-   "ᶡᶢᶣᶤᶥᶦᶧᶨᶩᶪᶫᶬᶭᶮᶯᶰᶱᶲᶳᶴᶵᶶᶷᶸᶹᶺᶻᶼᶽᶾᶿ⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⱽⵯ㆒㆓㆔㆕㆖㆗㆘㆙㆚㆛㆜㆝㆞㆟"
-   "ꚜꚝꝰꟲꟳꟴꟸꟹꭜꭝꭞꭟꭩ𐞁𐞂𐞃𐞄𐞅𐞇𐞈𐞉𐞊𐞋𐞌𐞍𐞎𐞏𐞐𐞑𐞒𐞓𐞔𐞕𐞖𐞗𐞘𐞙𐞚𐞛𐞜𐞝𐞞𐞟𐞠𐞡𐞢𐞣𐞤𐞥𐞦𐞧𐞨𐞩𐞪𐞫𐞬𐞭𐞮𐞯𐞰𐞲𐞳𐞴𐞵𐞶𐞷𐞸𐞹𐞺𞀰𞀱𞀲𞀳𞀴𞀵𞀶"
-   "𞀷𞀸𞀹𞀺𞀻𞀼𞀽𞀾𞀿𞁀𞁁𞁂𞁃𞁄𞁅𞁆𞁇𞁈𞁉𞁊𞁋𞁌𞁍𞁎𞁏𞁐𞁫𞁬𞁭")
-  "List of superscript characters which decompose to a single glyph.
-
-Found via:
-
-(seq-into
- (cl-loop for i from 0 upto #x10FFFF
-          if (let ((decomp (get-char-code-property i 'decomposition)))
-               (and (seq-contains-p decomp 'super #'eq)
-                    (length= decomp 2)))
-          collect i)
- 'string)
-
-and checked for duplicates with
-
-(let ((ht (make-hash-table :test #'equal)))
-  (cl-labels ((f (c decomp)
-                (format \"U+%04X %s %S\"
-                        c (get-char-code-property c 'name) decomp))
-              (g (c)
-                (let* ((decomp (get-char-code-property c 'decomposition))
-                       (other (gethash decomp ht)))
-                  (cond ((eq other t) (list (f c decomp)))
-                        (other (prog1 (list (f other decomp) (f c decomp))
-                                 (puthash decomp t ht)))
-                        (t (puthash decomp c ht) nil)))))
-    (seq-mapcat #'g THE-STRING)))
-
-then curated to remove U+00AA FEMININE ORDINAL INDICATOR, U+00BA
-MASCULINE ORDINAL INDICATOR, and U+1D4C MODIFIER LETTER SMALL TURNED
-OPEN E; which duplicated U+1D43 MODIFIER LETTER SMALL A, U+1D52 MODIFIER
-LETTER SMALL O, and U+1D9F MODIFIER LETTER SMALL REVERSED OPEN E,
-respectively.")
-
-(defconst mipc-superscript-multigraphs
-  "℠™🅪🅫🅬"
-  "List of superscript characters which decompose to multiple glyphs.
-Found via:
-
-(seq-into
- (sort (cl-loop for i from 0 upto #x10FFFF
-         if (let ((decomp (get-char-code-property i 'decomposition)))
-              (and (seq-contains-p decomp 'super #'eq)
-                   (length> decomp 2)))
-         collect i)
-       :key (lambda (c) (length (get-char-code-property c 'decomposition))))
- 'string)")
-
-(defun mipc-superscript-region
-    (beg end &optional digraphs region-noncontiguous)
-  "Convert characters in region to superscript.
-
-More specifically, for every character C, if there exists a character C'
-which decomposes (see `get-char-code-property') to '(super C), C is
-replaced with C'.
-
-If the optional argument DIGRAPHS is non-nil (interactively, if the
-prefix arg is non-nil), then for any characters C_0, C_1, C_n for which
-there exists a single codepoint C' that decomposes to '(super C_0 C_1
-... C_n), they will be replaced by C'.
-
-In other words, TM will become U+2122 TRADE MARK SIGN instead of U+1D40
-MODIFIER LETTER CAPITAL T, U+1D39 MODIFIER LETTER CAPITAL M; MC will become
-U+1F16A RAISED MC SIGN instead of U+1D39 MODIFIER LETTER CAPITAL M, U+A7F2
-MODIFIER LETTER CAPITAL C; etc."
-  (interactive
-   (list (region-beginning)
-         (region-end)
-         current-prefix-arg
-         (region-noncontiguous-p)))
-  (let ((beg (set-marker (make-marker) beg))
-        (end (set-marker (make-marker) end)))
-   (dolist (r (if region-noncontiguous (region-bounds) (list (cons beg end))))
-    (seq-do (lambda (c)
-              (replace-string-in-region
-               (seq-into (cdr (get-char-code-property c 'decomposition))
-                         'string)
-               (char-to-string c)
-               (car r)
-               (cdr r)))
-            (concat (if digraphs mipc-superscript-multigraphs "")
-                    mipc-superscript-monographs)))
-   (set-marker beg nil)
-   (set-marker end nil)))
-
-(defun mipc-unsuperscript-region (beg end &optional region-noncontiguous)
-  "Convert superscript characters in region to their decompositions.
-
-More specifically, for every character C' which decomposes (see
-`get-char-code-property') to '(super C_0 C_1 ... C_n), C' is replaced
-with C_0 C_1 ... C_n."
-  (interactive
-   (list (region-beginning)
-         (region-end)
-         (region-noncontiguous-p)))
-  (let ((beg (set-marker (make-marker) beg))
-        (end (set-marker (make-marker) end)))
-    (dolist (r (if region-noncontiguous (region-bounds) (list (cons beg end))))
-      (seq-do (lambda (c)
-                (replace-string-in-region
-                 (char-to-string c)
-                 (seq-into (cdr (get-char-code-property c 'decomposition))
-                           'string)
-                 (car r)
-                 (cdr r)))
-              (concat mipc-superscript-multigraphs
-                      mipc-superscript-monographs)))
-    (set-marker beg nil)
-    (set-marker end nil)))
-
-(defconst mipc-subscript-monographs
-  "ᵢᵣᵤᵥᵦᵧᵨᵩᵪ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₔₕₖₗₘₙₚₛₜⱼ𞁑𞁒𞁓𞁔𞁕𞁖𞁗𞁘𞁙𞁚𞁛𞁜𞁝𞁞𞁟𞁠𞁡𞁢𞁣𞁤𞁥𞁦𞁧𞁨𞁩𞁪"
-  "List of subscript characters which decompose to a single glyph.
-
-Found via:
-
-(seq-into
- (cl-loop for i from 0 upto #x10FFFF
-          if (let ((decomp (get-char-code-property i 'decomposition)))
-               (and (seq-contains-p decomp 'sub #'eq)
-                    (length= decomp 2)))
-          collect i)
- 'string)")
-
-(defconst mipc-subscript-multigraphs
-  ""
-  "List of subscript characters which decompose to multiple glyphs.
-
-Found via:
-
-(seq-into
- (sort (cl-loop for i from 0 upto #x10FFFF
-         if (let ((decomp (get-char-code-property i 'decomposition)))
-              (and (seq-contains-p decomp 'sub #'eq)
-                   (length> decomp 2)))
-         collect i)
-       :key (lambda (c) (length (get-char-code-property c 'decomposition))))
- 'string)")
-
-(defun mipc-subscript-region
-    (beg end &optional digraphs region-noncontiguous)
-  "Convert characters in region to subscript.
-
-More specifically, for every character C, if there exists a character C'
-which decomposes (see `get-char-code-property') to '(sub C), C is
-replaced with C'.
-
-If the optional argument DIGRAPHS is non-nil (interactively, if the
-prefix arg is non-nil), then for any characters C_0, C_1, C_n for which
-there exists a single codepoint C' that decomposes to '(sub C_0 C_1 ...
-C_n), they will be replaced by C'.
-
-At time of writing, there are no such digraphs, so this is unnecessary."
-  (interactive
-   (list (region-beginning)
-         (region-end)
-         current-prefix-arg
-         (region-noncontiguous-p)))
-  (let ((beg (set-marker (make-marker) beg))
-        (end (set-marker (make-marker) end)))
-   (dolist (r (if region-noncontiguous (region-bounds) (list (cons beg end))))
-    (seq-do (lambda (c)
-              (replace-string-in-region
-               (seq-into (cdr (get-char-code-property c 'decomposition))
-                         'string)
-               (char-to-string c)
-               (car r)
-               (cdr r)))
-            (concat (if digraphs mipc-subscript-multigraphs "")
-                    mipc-subscript-monographs)))
-   (set-marker beg nil)
-   (set-marker end nil)))
-
-(defun mipc-unsubscript-region (beg end &optional region-noncontiguous)
-  "Convert subscript characters in region to their decompositions.
-
-More specifically, for every character C' which decomposes (see
-`get-char-code-property') to '(sub C_0 C_1 ... C_n), C' is replaced with
-C_0 C_1 ... C_n."
-  (interactive
-   (list (region-beginning)
-         (region-end)
-         (region-noncontiguous-p)))
-  (let ((beg (set-marker (make-marker) beg))
-        (end (set-marker (make-marker) end)))
-    (dolist (r (if region-noncontiguous (region-bounds) (list (cons beg end))))
-      (seq-do (lambda (c)
-                (replace-string-in-region
-                 (char-to-string c)
-                 (seq-into (cdr (get-char-code-property c 'decomposition))
-                           'string)
-                 (car r)
-                 (cdr r)))
-              (concat mipc-subscript-multigraphs
-                      mipc-subscript-monographs)))
-    (set-marker beg nil)
-    (set-marker end nil)))
-
-(defun mipc-other-window-backward (count &optional all-frames interactive)
-  "`other-window' with a reversed understanding of the count argument."
-  (interactive "p")
-  (other-window (- count)))
-(keymap-set global-map "C-x O" #'mipc-other-window-backward)
-
-(defun mipc-goto-opposite-show-paren ()
-  "Go to the opposite paren as highlighted by `show-paren-mode'."
-  (interactive)
-  (unless show-paren-mode
-    (user-error
-     "Cannot go to opposite showed delimiter: show-paren-mode is not enabled"))
-  (pcase (funcall show-paren-data-function)
-    (`(,here-beg ,here-end ,there-beg ,there-end ,mismatch)
-     (if mismatch (user-error "No matching delimiter")
-       (goto-char there-beg)))
-    (_ (user-error "Point not at delimiter"))))
-
-(defun mipc-to-wp-pastable (&optional start end preserve-breaks para-lines)
-  "Convert region between START and END to be pastable in WordPress.
-
-If START and/or END are nil, the values of (`point-min')
-or (`point-max') will be used instead, respectively.
-
-If PRESERVE-BREAKS is non-nil, single line breaks will be converted to
-<br/>s; otherwise the relevant paragraphs will be un-filled.
-
-Runs of line breaks shorter than PARA-LINES are converted to a <br/>s,
-runs of equal or greater length are considered paragraph breaks. If
-PARA-LINES is nil, the default is 2.
-
-Interactively, C-u NUMBER M-x mipc-to-wp-pastable RET will set
-PARA-LINES explicitly, M-x mipc-to-wp-pastable RET or C-u M-x
-mipc-to-wp-pastable RET will set PARA-LINES to 2, and any other prefix
-argument will set PARA-LINES to 3; and any non-nil prefix argument will
-set PRESERVE-BREAKS to non-nil."
-  (interactive (list (when (use-region-p) (region-beginning))
-                     (when (use-region-p) (region-end))
-                     current-prefix-arg
-                     (cond ((numberp current-prefix-arg)    current-prefix-arg)
-                           ((not current-prefix-arg)        2)
-                           ((equal current-prefix-arg '(4)) 2)
-                           (t                               3))))
-  (let ((start (or start (point-min)))
-        (end   (or end   (point-max)))
-        (prev-buffer (current-buffer)))
-    (with-temp-buffer
-      (save-match-data
-        (insert-buffer-substring prev-buffer start end)
-        (unless preserve-breaks
-          (let ((fill-column (point-max)))
-            (fill-region (point-min) (point-max))))
-        (goto-char (point-min))
-        (insert "<meta http-equiv=\"content-type\""
-                " content=\"text/html; charset=utf-8\">"
-                "<!-- wp:paragraph -->\n<p>")
-        (while (search-forward-regexp (rx (any ?& ?< ?> ?\" ?')) (point-max) t)
-          (replace-match (pcase (match-string 0)
-                           ("&"  "&amp;")
-                           ("<"  "&lt;")
-                           (">"  "&gt;")
-                           ("\"" "&quot;")
-                           ("'"  "&#39;"))
-                         t t))
-        (goto-char (point-min))
-        (while (search-forward-regexp (rx (+ "\n")) (point-max) t)
-          (let* ((str (match-string 0))
-                 (len (length str)))
-            (replace-match
-             (if (< len para-lines) (apply #'concat (make-list len "<br/>"))
-               "</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>")
-             t t)))
-        (goto-char (point-max))
-        (insert "</p>\n<!-- /wp:paragraph -->\n")
-        (let ((tmp-buffer (current-buffer)))
-          (with-current-buffer prev-buffer
-            (replace-region-contents start end (lambda () tmp-buffer))))))))
-
-(setopt duplicate-line-final-position -1)
-(keymap-set global-map "H-d" #'duplicate-dwim)
-(keymap-set global-map "C-c d" #'duplicate-dwim)
+(require 'mipc-misc)
+(keymap-set global-map "H-y" #'mipc-yank-with-target)
+(mipc-toggle-display-zero-width-chars)
 
 ;; (use-package mipc-ff-hline :custom (mipc-ff-hline-global-mode t))
-
-(unbind-key "C-f" help-map)
 
 ;;;; Toggles Map
 
 (defvar-keymap mipc-toggle-map :doc "Keymap for toggle commands.")
 (keymap-set global-map "H-t" mipc-toggle-map)
-(keymap-set global-map "C-c t" mipc-toggle-map)
 
 ;;;; Search and Replace Map
 
@@ -1056,7 +592,6 @@ set PRESERVE-BREAKS to non-nil."
   :repeat t
   :doc "Keymap for search and replace commands.")
 (keymap-set global-map "H-s" mipc-search-and-replace-map)
-(keymap-set global-map "C-c s" mipc-search-and-replace-map)
 
 (keymap-set mipc-search-and-replace-map "H-s" #'search-forward-regexp)
 (keymap-set mipc-search-and-replace-map "s"   #'search-forward-regexp)
@@ -1067,11 +602,13 @@ set PRESERVE-BREAKS to non-nil."
 (keymap-set mipc-search-and-replace-map "H-l" #'list-matching-lines)
 (keymap-set mipc-search-and-replace-map "l"   #'list-matching-lines)
 
+(keymap-set mipc-search-and-replace-map "H-g" #'rgrep)
+(keymap-set mipc-search-and-replace-map "g"   #'rgrep)
+
 ;;;; Insert Map (Ficticious)
 
 (defvar-keymap mipc-insert-map :repeat t :doc "Keymap for insertion commands.")
 (keymap-set global-map "H-i" mipc-insert-map)
-(keymap-set global-map "C-c i" mipc-insert-map)
 
 (keymap-set mipc-insert-map "H-s" "¯ \\ _ ( ツ ) _ / ¯")
 (keymap-set mipc-insert-map "s"   "¯ \\ _ ( ツ ) _ / ¯")
@@ -1079,19 +616,12 @@ set PRESERVE-BREAKS to non-nil."
 (dolist (elt `(("z" . ,(char-to-string (char-from-name "ZERO WIDTH SPACE")))
                ("#" . "█")
                ("," . "‚")))
-  (keymap-set key-translation-map
-              (concat "H-i H-"   (car elt)) (cdr elt))
-  (keymap-set key-translation-map
-              (concat "H-i "     (car elt)) (cdr elt))
-  (keymap-set key-translation-map
-              (concat "C-c i H-" (car elt)) (cdr elt))
-  (keymap-set key-translation-map
-              (concat "C-c i "   (car elt)) (cdr elt)))
+  (keymap-set key-translation-map (concat "H-i H-" (car elt)) (cdr elt))
+  (keymap-set key-translation-map (concat "H-i "   (car elt)) (cdr elt)))
 
 ;;;; List Map
 (defvar-keymap mipc-list-map :doc "Keymap for commands that list things.")
 (keymap-set global-map "H-l" mipc-list-map)
-(keymap-set global-map "C-c l" mipc-list-map)
 
 (keymap-set mipc-list-map "H-d" #'dired)
 (keymap-set mipc-list-map "d"   #'dired)
@@ -1124,161 +654,16 @@ set PRESERVE-BREAKS to non-nil."
 
 (defvar-keymap mipc-misc-map :doc "Keymap for miscellaneous commands.")
 (keymap-set global-map "H-x" mipc-misc-map)
-(keymap-set global-map "C-c x" mipc-misc-map)
-
-(defun mipc-dump-buffer-local-variables ()
-  (interactive)
-  (with-temp-buffer-window "*Local Variables Dump*"
-      #'display-buffer-reuse-window
-      nil
-    (prin1 (buffer-local-variables))))
-(keymap-set mipc-misc-map "H-<home>" #'mipc-dump-buffer-local-variables)
-(keymap-set mipc-misc-map "<home>"   #'mipc-dump-buffer-local-variables)
-
-(defun mipc-cdmktempdir ()
-  "Create a temporary directory and visit it with `dired'."
-  (interactive)
-  (when-let* ((tempdir (make-temp-file "cdmktmpdir." t)))
-    (message tempdir)
-    (dired tempdir)))
 
 (when (assoc-default 'xdg-open mipc-ext-deps #'eq t)
-  (require 'url)
+  (keymap-set mipc-misc-map "H-w H-t" #'mipc-wiktionary-dwim)
+  (keymap-set mipc-misc-map "w t"     #'mipc-wiktionary-dwim)
 
-  (defun mipc-region-or-word-at-point-no-properties ()
-    "Return the region as a string, or the word at point as a string.
-
-Properties are stripped, non-contiguous regions are concatenated."
-    (if (region-active-p)
-        (let ((region-text (funcall region-extract-function nil)))
-          (substring-no-properties (if (listp region-text)
-                                       (apply #'concat region-text)
-                                     region-text)))
-      (word-at-point t)))
-
-  (defun mipc-wiktionary-region-or-word ()
-    "Search for the region or word at point on the English Wiktionary."
-    (interactive)
-    (browse-url-xdg-open
-     (concat
-      "https://en.wiktionary.org/wiki/Special:Search?go=Try+exact+match&search="
-      (url-hexify-string (mipc-region-or-word-at-point-no-properties)
-                         url-query-key-value-allowed-chars))))
-  (keymap-set mipc-misc-map "H-w H-t"  #'mipc-wiktionary-region-or-word)
-  (keymap-set mipc-misc-map "w t"      #'mipc-wiktionary-region-or-word)
-
-  (defun mipc-wikipedia-region-or-word ()
-    "Search for the region or word at point on the English Wikipedia."
-    (interactive)
-    (browse-url-xdg-open
-     (concat
-      "https://en.wikipedia.org/wiki/Special:Search?go=Try+exact+match&search="
-      (url-hexify-string (mipc-region-or-word-at-point-no-properties)
-                         url-query-key-value-allowed-chars)
-      "&ns0=1")))
-  (keymap-set mipc-misc-map "H-w H-p"  #'mipc-wikipedia-region-or-word)
-  (keymap-set mipc-misc-map "w p"      #'mipc-wikipedia-region-or-word))
-
-(keymap-set mipc-misc-map "H-r" #'rgrep)
-(keymap-set mipc-misc-map "r"   #'rgrep)
-
-(defun mipc-reformat-datetime-region (beg end)
-  "Parse the region as a datetime and reformat it."
-  (interactive "r")
-  (replace-region-contents
-   beg end
-   (lambda ()
-     (let* ((datetime-str (buffer-substring-no-properties (point-min)
-                                                          (point-max)))
-            (datetime (parse-time-string datetime-str))
-            (date-fmt)
-            (time-fmt)
-            (zone-fmt ""))
-       (when (decoded-time-day datetime)
-         (push "%d" date-fmt))
-       (when (decoded-time-month datetime)
-         (push "%m" date-fmt))
-       (when (decoded-time-year datetime)
-         (push "%+4Y" date-fmt))
-       (setq date-fmt (string-join date-fmt "-"))
-
-       (when (decoded-time-second datetime)
-         (push "%H" time-fmt))
-       (when (decoded-time-minute datetime)
-         (push "%M" time-fmt))
-       (when (decoded-time-hour datetime)
-         (push "%S" time-fmt))
-       (setq time-fmt (string-join time-fmt "-"))
-
-       (when (decoded-time-zone datetime)
-         (setq zone-fmt "%z"))
-
-      (format-time-string
-       (string-join (list date-fmt time-fmt zone-fmt) " ")
-       (date-to-time datetime-str)
-       t)))))
-
-;; Maybe this ↓ should be a minor mode? Using font-lock and all that?
-
-(defvar mipc-displaying-zero-width-chars nil)
-
-(defun mipc-toggle-display-zero-width-chars ()
-  "Toggle drawing zero-width characters."
-  (interactive)
-  (dolist (char mipc-zero-width-characters)
-    (set-char-table-range
-     glyphless-char-display (car char)
-     (if mipc-displaying-zero-width-chars 'zero-width (cdr char))))
-  (setq mipc-displaying-zero-width-chars
-        (not mipc-displaying-zero-width-chars)))
-
-(defvar mipc-copy-messages--marker nil)
-
-(defun mipc-copy-messages ()
-  "Copy the next command's messages to the kill-ring.
-
-Specifically, registers a `post-command-hook' that checks the *Messages*
-buffer for changes after every command, and once this happens
-un-registers itself and copies the contents from the end of the
-*Messages* buffer at the time you called mipc-copy-messages to the
-current end of the *Messages* buffer.
-
-This command does not set `this-command' to `kill-region', so a
-subsequent kill command does not append to the same kill ring entry."
-  (interactive)
-  (add-hook 'post-command-hook
-            #'mipc-copy-messages--post-command-hook))
-
-(defun mipc-copy-messages--post-command-hook ()
-  (with-current-buffer (get-buffer-create "*Messages*")
-    (if (not mipc-copy-messages--marker)
-        (setq mipc-copy-messages--marker (point-max-marker))
-      (unless (= (point-max) mipc-copy-messages--marker)
-        (when (> (point-max) mipc-copy-messages--marker)
-          (copy-region-as-kill mipc-copy-messages--marker (point-max)))
-        (set-marker mipc-copy-messages--marker nil)
-        (setq       mipc-copy-messages--marker nil)
-        (remove-hook 'post-command-hook
-                     #'mipc-copy-messages--post-command-hook)))))
+  (keymap-set mipc-misc-map "H-w H-p" #'mipc-wikipedia-dwim)
+  (keymap-set mipc-misc-map "w p"     #'mipc-wikipedia-dwim))
 
 (keymap-set mipc-misc-map "H-m" #'mipc-copy-messages)
 (keymap-set mipc-misc-map "m"   #'mipc-copy-messages)
-
-(defun mipc-foo-scratch (major-mode)
-  (interactive (list (treesit--read-major-mode)))
-  (let* ((mode-name (symbol-name major-mode))
-         (mode-name-sans-suffix
-          (string-trim-right mode-name
-                             (rx (? (or "-ts" "-major")) "-mode" eos)))
-         (buffer-name (format "*%s scratch*" mode-name-sans-suffix))
-         (buffer-existed (get-buffer buffer-name))
-         (buffer (get-buffer-create buffer-name)))
-    (unless buffer-existed
-      (with-current-buffer buffer
-        (funcall major-mode)
-        (when-let* ((tempdir (make-temp-file "cdmktmpdir." t)))
-          (setq-local default-directory (file-name-as-directory tempdir)))))
-    (display-buffer buffer '(nil . ((post-command-select-window . t))))))
 
 ;;; Global Mode / Package Configuration
 
@@ -1295,9 +680,10 @@ subsequent kill command does not append to the same kill ring entry."
 
 (use-package align
   :defer t
-  :bind (:map mipc-misc-map
-              ("H-a" . align-regexp)
-              ("a" . align-regexp)))
+  :bind
+  (:map mipc-misc-map
+        ("H-a" . align-regexp)
+        ("a" . align-regexp)))
 
 ;;;; `auto-revert-mode' (built-in)
 
@@ -1335,8 +721,7 @@ subsequent kill command does not append to the same kill ring entry."
 ;;;; `compilation-mode' (built-in)
 (use-package compile
   :defer t
-  :bind (("H-c"   . compile)
-         ("C-c c" . compile)))
+  :bind (("H-c" . compile)))
 
 ;;;; `conf-mode' (built-in)
 
@@ -1448,10 +833,10 @@ parents) is listed in `mipc-display-line-numbers-exempt-modes'."
 
 (use-package edit-indirect
   :ensure t
-  :bind (:map
-         mipc-misc-map
-         ("H-e H-r" . edit-indirect-region)
-         ("e r" . edit-indirect-region)))
+  :bind
+  (:map mipc-misc-map
+        ("H-e H-r" . edit-indirect-region)
+        ("e r" . edit-indirect-region)))
 
 ;;;; `editorconfig-mode'
 
@@ -1462,19 +847,19 @@ parents) is listed in `mipc-display-line-numbers-exempt-modes'."
 (use-package elec-pair
   :defer t
   :custom (electric-pair-mode t)
-  :bind (:map
-         mipc-toggle-map
-         ("H-e H-p" . electric-pair-mode)
-         ("e p" . electric-pair-mode)))
+  :bind
+  (:map mipc-toggle-map
+        ("H-e H-p" . electric-pair-mode)
+        ("e p" . electric-pair-mode)))
 
 (use-package electric
   :defer t
-  :bind (:map
-         mipc-toggle-map
-         ("H-e H-i" . electric-indent-mode)
-         ("e i" . electric-indent-mode)
-         ("H-e H-l" . electric-layout-mode)
-         ("e l" . electric-layout-mode)))
+  :bind
+  (:map mipc-toggle-map
+        ("H-e H-i" . electric-indent-mode)
+        ("e i" . electric-indent-mode)
+        ("H-e H-l" . electric-layout-mode)
+        ("e l" . electric-layout-mode)))
 
 ;;;; `files' (built-in)
 
@@ -1585,10 +970,10 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 (use-package hideshow
   :defer t
   ;; :hook (prog-mode . hs-minor-mode)
-  :bind (:map
-         mipc-toggle-map
-         ("H-h" . hs-minor-mode)
-         ("h"   . hs-minor-mode)))
+  :bind
+  (:map mipc-toggle-map
+        ("H-h" . hs-minor-mode)
+        ("h"   . hs-minor-mode)))
 
 ;;;; `ibuffer-mode' (built-in)
 
@@ -1621,11 +1006,12 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 ;; Exactly what it sounds like. De-indent the kill ring.
 
-(use-package indent-aux :custom (kill-ring-deindent-mode t)
-  :bind (:map
-         mipc-toggle-map
-         ("H-k H-d" . kill-ring-deindent-mode)
-         ("k d" . kill-ring-deindent-mode)))
+(use-package indent-aux
+  :custom (kill-ring-deindent-mode t)
+  :bind
+  (:map mipc-toggle-map
+        ("H-k H-d" . kill-ring-deindent-mode)
+        ("k d" . kill-ring-deindent-mode)))
 
 ;;;; `lsp-mode'
 
@@ -1646,6 +1032,13 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
     (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]fetched\\'")))
 
 (when mipc-use-lsp (use-package lsp-ui :ensure t :after lsp-mode))
+
+;;;; `misc' (built-in)
+
+(use-package misc
+  :defer t
+  :custom (duplicate-line-final-position -1)
+  :bind (("H-d" . duplicate-dwim)))
 
 ;;;; `menu-bar-mode' (built-in)
 
@@ -1736,8 +1129,8 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
   :custom (tab-bar-new-tab-to 'rightmost)
   :bind
   (:map mipc-toggle-map
-   ("H-t H-b" . tab-bar-mode)
-   ("t b"     . tab-bar-mode)))
+        ("H-t H-b" . tab-bar-mode)
+        ("t b"     . tab-bar-mode)))
 
 (use-package project :defer t :bind ("C-x t p" . tab-bar-switch-to-prev-tab))
 
@@ -1876,11 +1269,11 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
     :hook ((c-ts-mode . mipc-c-ts-extra-font-lock-rules)
            (c-ts-mode . mipc-c-ts-adjust-syntax-table))))
 
-(when (assoc-default 'clang mipc-ext-deps #'eq t)
-  (use-package company-clang
-    :defer t
-    :custom
-    (company-clang-arguments '("-std=c23"))))
+;; (when (assoc-default 'clang mipc-ext-deps #'eq t)
+;;   (use-package company-clang
+;;     :defer t
+;;     :custom
+;;     (company-clang-arguments '("-std=c23"))))
 
 ;; (when (and mipc-use-lsp (assoc-default 'clang mipc-ext-deps #'eq t))
 ;;   (use-package lsp-clangd
@@ -1942,13 +1335,16 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 (use-package speedbar
   :defer t
-  :bind (:map mipc-toggle-map ("H-s H-b" . speedbar) ("s b" . speedbar)))
+  :bind
+  (:map mipc-toggle-map
+        ("H-s H-b" . speedbar)
+        ("s b" . speedbar)))
 
 ;;;; Emacs Lisp
 
 ;; Turn on outlines for Elisp.
 
-(use-package elisp-mode :hook (emacs-lisp-mode . outline-minor-mode))
+(use-package outline :hook (emacs-lisp-mode . outline-minor-mode))
 
 ;; (use-package elisp-autofmt
 ;;   :ensure t
@@ -1959,6 +1355,7 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 
 (use-package eshell
   :defer t
+  :init (require 'mipc-eshell)
   :custom
   (eshell-prompt-function #'mipc-eshell-prompt-function)
   (eshell-aliases-file (expand-file-name "eshell/alias" mipc-data-dir))
@@ -1969,109 +1366,6 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
   :defer t
   :config
   (keymap-set eshell-mode-map "<tab>" yas-maybe-expand))
-
-(defconst mipc-eshell-prompt-chars-to-lead 20
-  "Maximum number of characters for the leading part of the eshell prompt.")
-
-(defconst mipc-eshell-prompt-chars-to-follow 20
-  "Maximum number of characters for the trailing part of the eshell prompt.")
-
-(defun mipc-eshell-prompt-function ()
-  (let ((ps1 '())
-        (dir (abbreviate-file-name (eshell/pwd))))
-
-    (setq ps1
-          (list
-           (if (length> dir (+ mipc-eshell-prompt-chars-to-lead
-                               mipc-eshell-prompt-chars-to-follow))
-               (concat (substring dir
-                                  nil (- mipc-eshell-prompt-chars-to-lead 1))
-                       ".."
-                       (substring dir
-                                  (- 1 mipc-eshell-prompt-chars-to-follow)))
-             dir)))
-
-    (unless (eshell-exit-success-p)
-      (push (format " [%d]" eshell-last-command-status) ps1))
-
-    ; It should be illegal to name such a stupid company after something as
-    ; beautiful as the Y fixpoint combinator. But I digress.
-    (push (cond ((= (file-user-uid) 0) " Y ")
-                (" λ "))
-          ps1)
-
-    (apply #'concat (nreverse ps1))))
-
-(defun eshell/catfl (&rest files)
-  "font-lock, concatenate and print files to eshell."
-  (let ((minor-modes))
-    (dolist (file-or-mode (flatten-tree files))
-      (cond ((string-prefix-p "-" file-or-mode)
-             (let ((mode (intern (substring file-or-mode 1))))
-               (setq minor-modes (delq mode minor-modes))))
-            ((string-prefix-p "+" file-or-mode)
-             (let ((mode (intern (substring file-or-mode 1))))
-               (unless (memq mode minor-modes)
-                 (push mode minor-modes))))
-            (t
-             (eshell-print (mipc-catfl1 file-or-mode minor-modes)))))))
-
-(defun mipc-catfl1 (file &optional minor-modes)
-  (with-temp-buffer
-    (with-silent-modifications
-      (insert-file-contents file t)
-      (normal-mode)
-      (dolist (mode minor-modes)
-        (funcall mode 1))
-      (font-lock-fontify-buffer)
-      ;; attempt to neutralize any problematic text properties
-      (remove-text-properties (point-min) (point-max)
-                              '(help-echo                      nil
-                                help-echo-inhibit-substitution nil
-                                left-fringe-help               nil
-                                right-fringe-help              nil
-                                keymap                         nil
-                                local-map                      nil
-                                syntax-table                   nil
-                                read-only                      nil
-                                inhibit-read-only              nil
-                                inhibit-isearch                nil
-                                field                          nil
-                                wrap-prefix                    nil
-                                line-prefix                    nil
-                                modification-hooks             nil
-                                insert-in-front-hooks          nil
-                                insert-behind-hooks            nil
-                                cursor-sensor-functions        nil
-                                minibuffer-message             nil
-                                display-line-numbers-disable   nil
-                                hard                           nil
-                                right-margin                   nil
-                                left-margin                    nil
-                                justification                  nil)))
-    (buffer-substring (point-min) (point-max))))
-
-(defun eshell/catb (&rest args)
-  (seq-mapcat
-   (lambda (buffer-or-file)
-     (if-let* ((buffer (get-buffer buffer-or-file)))
-         (with-current-buffer buffer
-           (buffer-substring-no-properties (point-min) (point-max)))
-       (with-temp-buffer
-         (insert-file-contents-literally buffer-or-file)
-         (buffer-substring-no-properties (point-min) (point-max)))))
-   args
-   'string))
-
-(defun eshell/mtdp (&rest args)
-  (when-let* ((tempdir (make-temp-file (or (nth 1 args) "cdmktmpdir.") t)))
-    (eshell-printn tempdir)
-    (eshell/pushd tempdir)))
-
-(defun eshell/gdb (&rest args)
-  (gdb (string-join (append `("gdb" "-i=mi" ,(or (car args) "./a.out"))
-                            (cdr args))
-        " ")))
 
 ;;;; git
 
@@ -2084,7 +1378,10 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
   (use-package magit
     :ensure t
     :defer t
-    :bind (:map mipc-toggle-map ("H-g" . magit-status) ("g" . magit-status))
+    :bind
+    (:map mipc-toggle-map
+          ("H-g" . magit-status)
+          ("g" . magit-status))
     :config
     (dolist (command '(magit-diff-edit-hunk-commit magit-edit-line-commit))
       (put command 'disabled nil))))
@@ -2165,6 +1462,8 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
 ;;
 ;; 2. Find out if I can leverage the category action argument to make this
 ;;    behave nicer. See (info "(elisp) Choosing Window")
+
+(unbind-key "C-f" help-map)
 
 (defun mipc-display-buffer-maybe-same-window-by-related-modes (buffer alist)
   "Conditionally display BUFFER in the selected window.
@@ -2496,8 +1795,7 @@ with \"*Man\" will also be matched."
 
 ;;;; SGML
 
-(use-package display-fill-column-indicator
-  :hook sgml-mode)
+(use-package display-fill-column-indicator :hook sgml-mode)
 
 ;; (use-package psgml
 ;;   :ensure t
@@ -2519,8 +1817,8 @@ with \"*Man\" will also be matched."
 
 (use-package comint
   :defer t
-  :config (add-to-list 'comint-output-filter-functions
-                       #'comint-osc-process-output))
+  :config
+  (add-to-list 'comint-output-filter-functions #'comint-osc-process-output))
 
 ;;;; Shell Scripts
 
@@ -2551,13 +1849,6 @@ with \"*Man\" will also be matched."
 ;;;; Web (HTML/XHTML, CSS, ECMAScript/JavaScript)
 
 ;; HTMLize is a neat package that "renders" an HTML buffer in-Emacs.
-
-(when (or (daemonp) (display-graphic-p))
-  (defun mipc-yank-with-html-target ()
-    (interactive)
-    (mipc-yank-with-target 'text/html))
-  (use-package mhtml-mode :bind (:map mhtml-mode-map
-                                 ("C-M-y" . mipc-yank-with-html-target))))
 
 (use-package htmlize :ensure t :demand t)
 
