@@ -25,12 +25,7 @@ Essentially the opposite of `fill-paragraph'"
   (interactive "p")
   (yank-pop (- uarg)))
 
-(defun mipc-deactivate-mark (uarg)
-  "Interactive wrapper around `deactivate-mark'."
-  (interactive "p")
-  (deactivate-mark uarg))
-
-(defun mipc-other-window-backward (count &optional all-frames interactive)
+(defun mipc-other-window-backward (count &optional _all-frames _interactive)
   "`other-window' with a reversed understanding of the count argument."
   (interactive "p")
   (other-window (- count)))

@@ -286,6 +286,13 @@ subsequent kill command does not append to the same kill ring entry."
           (setq-local default-directory (file-name-as-directory tempdir)))))
     (display-buffer buffer '(nil . ((post-command-select-window . t))))))
 
+(defun mipc-dont-fuck-with-whitespace ()
+  (interactive)
+  (remove-hook 'before-save-hook #'mipc-whitespace-cleanup-unless-exempt t)
+  (electric-indent-local-mode -1)
+  (setq-local indent-line-function   #'indent-relative
+              indent-region-function #'indent-region-line-by-line))
+
 (provide 'mipc-misc)
 
 ;;; mipc-misc.el ends here

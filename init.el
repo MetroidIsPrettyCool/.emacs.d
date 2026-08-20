@@ -368,7 +368,9 @@ Not a very good idea. Appealing, though...")
       ,(font-spec :name "Symbola")))
 
   (defconst mipc-font-rescales
-    `((,(rx "Noto Sans CJK") . 0.9)))
+    `((,(rx "Noto Sans CJK")  . 0.9)
+      ;; (,(rx "Noto Sans Math") . 0.9)
+      ))
 
   (dolist (elt mipc-font-rescales)
     (add-to-list 'face-font-rescale-alist elt))
@@ -554,10 +556,10 @@ Not a very good idea. Appealing, though...")
              ((consp e)
               (cons (intern (concat "H-" (symbol-name (car e)))) (cdr e)))))))
 
-  (keymap-set local-function-key-map "<home>" #'mipc-hyperify-next-event))
+  (keymap-set function-key-map "<home>" #'mipc-hyperify-next-event))
 
 (cl-loop for c upfrom ?a to ?z
-         do (keymap-set local-function-key-map
+         do (keymap-set function-key-map
                         (format "C-c %c" c) (format "H-%c" c)))
 
 ;;;; Global Map / Unbound
@@ -565,7 +567,6 @@ Not a very good idea. Appealing, though...")
 (require 'mipc-opposite-day)
 (keymap-set global-map "M-Q" #'mipc-unfill-paragraph)
 (keymap-set global-map "M-Y" #'mipc-yank-pop-forwards)
-(keymap-set global-map "C-S-SPC" #'mipc-deactivate-mark)
 (keymap-set global-map "C-x O" #'mipc-other-window-backward)
 
 (keymap-set global-map "<mouse-9>" #'next-buffer)
@@ -615,7 +616,8 @@ Not a very good idea. Appealing, though...")
 
 (dolist (elt `(("z" . ,(char-to-string (char-from-name "ZERO WIDTH SPACE")))
                ("#" . "█")
-               ("," . "‚")))
+               ("," . "‚")
+               ("1" . "Ʈ")))
   (keymap-set key-translation-map (concat "H-i H-" (car elt)) (cdr elt))
   (keymap-set key-translation-map (concat "H-i "   (car elt)) (cdr elt)))
 
@@ -846,7 +848,9 @@ parents) is listed in `mipc-display-line-numbers-exempt-modes'."
 
 (use-package elec-pair
   :defer t
-  :custom (electric-pair-mode t)
+  :custom
+  (electric-pair-mode t)
+  (electric-pair-open-newline-between-pairs nil)
   :bind
   (:map mipc-toggle-map
         ("H-e H-p" . electric-pair-mode)
@@ -1032,6 +1036,10 @@ or is derived from a member of, `mipc-whitespace-cleanup-exempt-modes'."
     (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]fetched\\'")))
 
 (when mipc-use-lsp (use-package lsp-ui :ensure t :after lsp-mode))
+
+;;;; `mipc-ff-hline-mode'
+
+(require 'mipc-ff-hline)
 
 ;;;; `misc' (built-in)
 
@@ -1745,9 +1753,23 @@ with \"*Man\" will also be matched."
 
 ;;;; Racket
 
-(use-package geiser-racket :ensure t :defer t)
-(use-package racket-mode :ensure t :defer t)
+(use-package racket-mode :ensure t :defer t :mode "\\.rkt\\'")
 (use-package scribble :load-path mipc-3rdparty-lisp-dir :defer t)
+
+(use-package geiser :ensure t :defer t :hook (racket-mode . geiser-mode))
+(use-package geiser-racket
+  :ensure t
+  :defer t
+  :config
+  (setq auto-mode-alist (delete '("\\.rkt\\'" . scheme-mode) auto-mode-alist)))
+
+;; `geiser-racket' and `racket-mode' have conflicting autoloads which add rkt to
+;; `auto-mode-alist'. I would prefer to use the dedicated mode and not
+;; `scheme-mode', thank you.
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq auto-mode-alist
+                  (delete '("\\.rkt\\'" . scheme-mode) auto-mode-alist))))
 
 ;;;; Raku
 
